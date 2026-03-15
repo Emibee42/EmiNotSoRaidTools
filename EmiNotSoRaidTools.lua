@@ -67,7 +67,6 @@ petReminderFrame:EnableMouse(false)
 petReminderFrame:RegisterForDrag("LeftButton")
 petReminderFrame:SetBackdrop({ bgFile = "Interface/ChatFrame/ChatFrameBackground" })
 petReminderFrame:SetBackdropColor(0, 0, 0, 0)
-
 petReminderFrame:SetScript("OnDragStart", petReminderFrame.StartMoving)
 petReminderFrame:SetScript("OnDragStop", function()
     petReminderFrame:StopMovingOrSizing()
@@ -104,7 +103,7 @@ local function UpdatePetDisplay()
                 petReminderFrame:Hide()
             end
         else
-            if UnitExists("pet") then
+            if not UnitExists("pet") then
                 petReminderFrame:Hide()
             else
                 petReminderFrame:Show()
