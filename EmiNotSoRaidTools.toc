@@ -1,0 +1,9 @@
+## Interface: 120001
+## Title: EmiNotSoRaidTools
+## Notes: Simple addon to show text
+## Author: Emidalee
+## Version: 1.0
+## SavedVariables: EmiNotSoRaidToolsDB
+## Category: Emi
+
+EmiNotSoRaidTools.lua
