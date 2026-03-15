@@ -129,6 +129,7 @@ local function ApplyLockState()
         displayFrame:SetBackdropBorderColor(1, 1, 1, 1)
         displayFrame:SetBackdropColor(0, 0, 0, 0.3)
         
+        petReminderFrame:SetBackdropBorderColor(1, 1, 1, 1)
         petReminderFrame:SetBackdropColor(0, 0, 0, 0.3)
         petReminderFrame:Show()
         petReminderText:Show()
@@ -136,6 +137,7 @@ local function ApplyLockState()
         displayFrame:SetBackdropBorderColor(1, 1, 1, 0)
         displayFrame:SetBackdropColor(0, 0, 0, 0)
         
+        petReminderFrame:SetBackdropBorderColor(1, 1, 1, 0)
         petReminderFrame:SetBackdropColor(0, 0, 0, 0)
         UpdatePetDisplay()
     end
