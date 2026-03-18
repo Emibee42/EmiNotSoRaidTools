@@ -305,11 +305,16 @@ petReminderCheckbox:SetScript("OnClick", function(self)
     UpdatePetDisplay()
 end)
 
+-- Find this section in your EmiNotSoRaidTools.lua and replace it:
 local bloodlustTrackingCheckbox = CreateFrame("CheckButton", nil, configFrame, "UICheckButtonTemplate")
 bloodlustTrackingCheckbox:SetPoint("TOP", petReminderCheckbox, "BOTTOM", 0, -10)
 bloodlustTrackingCheckbox.text:SetText("Enable Bloodlust Tracking with PEDRO")
 bloodlustTrackingCheckbox:SetScript("OnClick", function(self)
     EmiNotSoRaidToolsDB.BloodlustTrackingEnabled = self:GetChecked()
+    -- Apply changes immediately
+    if Emi_UpdateLustLockState then 
+        Emi_UpdateLustLockState() 
+    end
 end)
 
 local testLustButton = CreateFrame("Button", nil, configFrame, "UIPanelButtonTemplate")

@@ -1,6 +1,5 @@
 local ADDON_NAME = "EmiNotSoRaidTools"
 
--- Expanded Spell List from your WeakAura export
 local LUST_SPELLS = {
     [2825]   = 40, -- Bloodlust
     [32182]  = 40, -- Heroism
@@ -26,44 +25,48 @@ lustGifFrame:Hide()
 local lustGifTexture = lustGifFrame:CreateTexture(nil, "OVERLAY")
 lustGifTexture:SetAllPoints()
 lustGifTexture:SetTexture("Interface\\AddOns\\EmiNotSoRaidTools\\media\\pedro.tga")
-lustGifTexture:SetTexCoord(0, 1, 0, 1)
 
+-- NEW: Timer Text
+local lustTimerText = lustGifFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
+lustTimerText:SetPoint("BOTTOM", lustGifFrame, "TOP", 0, 5)
+lustTimerText:SetTextColor(1, 1, 1)
 
--- Animation Settings from WeakAura Export
 local COLS, ROWS = 4, 8
 local TOTAL_FRAMES = COLS * ROWS
-local FRAME_DURATION = 1 / 6 -- Set to 6 FPS as per WeakAura
+local FRAME_DURATION = 1 / 6 
 local currentFrame = 0
 local timeSinceLastUpdate = 0
 local TEX_WIDTH = 768
 local TEX_HEIGHT = 1536
-
 local FRAME_WIDTH = TEX_WIDTH / COLS
 local FRAME_HEIGHT = TEX_HEIGHT / ROWS
 
+-- FIX: Function to set specific frame UVs immediately
+local function SetAnimationFrame(frameIdx)
+    local col = frameIdx % COLS
+    local row = math.floor(frameIdx / COLS)
+    local left = (col * FRAME_WIDTH) / TEX_WIDTH
+    local right = ((col + 1) * FRAME_WIDTH) / TEX_WIDTH
+    local top = (row * FRAME_HEIGHT) / TEX_HEIGHT
+    local bottom = ((row + 1) * FRAME_HEIGHT) / TEX_HEIGHT
+    lustGifTexture:SetTexCoord(left, right, top, bottom)
+end
+
+local function ResetAnimation()
+    currentFrame = 0
+    timeSinceLastUpdate = 0
+    SetAnimationFrame(0)
+end
+
 local function UpdateAnimation(elapsed)
     timeSinceLastUpdate = timeSinceLastUpdate + elapsed
-
     while timeSinceLastUpdate >= FRAME_DURATION do
         timeSinceLastUpdate = timeSinceLastUpdate - FRAME_DURATION
-
         currentFrame = (currentFrame + 1) % TOTAL_FRAMES
-
-        local col = currentFrame % COLS
-        local row = math.floor(currentFrame / COLS)
-
-        -- Convert pixel coords → UV
-        local left = (col * FRAME_WIDTH) / TEX_WIDTH
-        local right = ((col + 1) * FRAME_WIDTH) / TEX_WIDTH
-        local top = (row * FRAME_HEIGHT) / TEX_HEIGHT
-        local bottom = ((row + 1) * FRAME_HEIGHT) / TEX_HEIGHT
-
-        -- Flip vertically (WoW)
-        lustGifTexture:SetTexCoord(left, right, top, bottom)
+        SetAnimationFrame(currentFrame)
     end
 end
 
--- Dragging Logic
 lustGifFrame:RegisterForDrag("LeftButton")
 lustGifFrame:SetScript("OnDragStart", lustGifFrame.StartMoving)
 lustGifFrame:SetScript("OnDragStop", function()
@@ -75,40 +78,33 @@ lustGifFrame:SetScript("OnDragStop", function()
 end)
 
 function Emi_UpdateLustSize(size)
-    if lustGifFrame then
-        lustGifFrame:SetSize(size, size)
-    end
+    if lustGifFrame then lustGifFrame:SetSize(size, size) end
 end
 
 function Emi_TestLust()
     lustActive = true
     lustEndTime = GetTime() + 10
+    ResetAnimation()
     lustGifFrame:Show()
 end
 
 function Emi_UpdateLustLockState()
     local db = EmiNotSoRaidToolsDB
-    if not db then return end
+    if not db or not db.BloodlustTrackingEnabled then 
+        lustGifFrame:Hide()
+        return 
+    end
+    
     if not db.locked then
         lustGifFrame:EnableMouse(true)
         lustGifFrame:SetBackdropColor(0, 0, 0, 0.5)
+        ResetAnimation()
         lustGifFrame:Show() 
     else
         lustGifFrame:EnableMouse(false)
         lustGifFrame:SetBackdropColor(0, 0, 0, 0)
         if not lustActive then lustGifFrame:Hide() end
     end
-end
-
-local function ResetAnimation()
-    currentFrame = 0
-    timeSinceLastUpdate = 0
-    -- Manually set the UVs for the very first frame (Frame 0)
-    local left = 0
-    local right = FRAME_WIDTH / TEX_WIDTH
-    local top = 0
-    local bottom = FRAME_HEIGHT / TEX_HEIGHT
-    lustGifTexture:SetTexCoord(left, right, top, bottom)
 end
 
 local eventFrame = CreateFrame("Frame")
@@ -118,18 +114,11 @@ eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "PLAYER_ENTERING_WORLD" then
         if EmiNotSoRaidToolsDB then
-            if EmiNotSoRaidToolsDB.lustPosition then
-                local p = EmiNotSoRaidToolsDB.lustPosition
-                lustGifFrame:ClearAllPoints()
-                lustGifFrame:SetPoint(p.point, p.x, p.y)
-            else
-                lustGifFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 200)
-            end
-            if EmiNotSoRaidToolsDB.lustSize then
-                Emi_UpdateLustSize(EmiNotSoRaidToolsDB.lustSize)
-            end
+            local p = EmiNotSoRaidToolsDB.lustPosition or {point="CENTER", x=0, y=200}
+            lustGifFrame:ClearAllPoints()
+            lustGifFrame:SetPoint(p.point, p.x, p.y)
+            ResetAnimation()
         end
-        ResetAnimation()
         return
     end
 
@@ -138,20 +127,30 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         if LUST_SPELLS[spellID] then
             lustActive = true
             lustEndTime = GetTime() + LUST_SPELLS[spellID]
+            ResetAnimation()
             lustGifFrame:Show()
         end
     end
 end)
 
 lustGifFrame:SetScript("OnUpdate", function(self, elapsed)
-    if lustActive or (EmiNotSoRaidToolsDB and not EmiNotSoRaidToolsDB.locked) then
-        UpdateAnimation(elapsed)
+    local db = EmiNotSoRaidToolsDB
+    if not db or not db.BloodlustTrackingEnabled then
+        self:Hide()
+        return
     end
-    
-    if lustActive and GetTime() > lustEndTime then
-        lustActive = false
-        if EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.locked then
-            self:Hide()
+
+    if lustActive then
+        UpdateAnimation(elapsed)
+        local remaining = lustEndTime - GetTime()
+        if remaining > 0 then
+            lustTimerText:SetFormattedText("%.1fs", remaining)
+        else
+            lustActive = false
+            if db.locked then self:Hide() end
         end
+    elseif not db.locked then
+        UpdateAnimation(elapsed)
+        lustTimerText:SetText("TEST")
     end
 end)
