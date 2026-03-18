@@ -314,7 +314,7 @@ end)
 
 local testLustButton = CreateFrame("Button", nil, configFrame, "UIPanelButtonTemplate")
 testLustButton:SetSize(140, 26)
-testLustButton:SetPoint("LEFT", bloodlustTrackingCheckbox, "BOTTOM", 25, 0)
+testLustButton:SetPoint("LEFT", bloodlustTrackingCheckbox, "BOTTOM", 40, -10)
 testLustButton:SetText("Test PEDRO")
 testLustButton:SetScript("OnClick", function()
     if Emi_TestLust then Emi_TestLust() end
