@@ -1,6 +1,5 @@
 -- EmiNotSoRaidTools Addon
 -- Displays customizable text on screen for raid tools, changing based on player status.
-
 local ADDON_NAME = "EmiNotSoRaidTools"
 local DEFAULT_ALIVE_TEXT = "Emi is the best"
 local DEFAULT_DEAD_TEXT = "Emi has fallen... but is still the best!"
@@ -36,6 +35,8 @@ local function InitializeDatabaseDefaults()
     EmiNotSoRaidToolsDB.position = EmiNotSoRaidToolsDB.position or { point = "CENTER", x = 0, y = 0 }
     EmiNotSoRaidToolsDB.petReminderEnabled = (EmiNotSoRaidToolsDB.petReminderEnabled == nil) and false or EmiNotSoRaidToolsDB.petReminderEnabled
     EmiNotSoRaidToolsDB.petReminderPosition = EmiNotSoRaidToolsDB.petReminderPosition or { point = "CENTER", x = 0, y = 100 }
+    EmiNotSoRaidToolsDB.BloodlustTrackingEnabled = (EmiNotSoRaidToolsDB.BloodlustTrackingEnabled == nil) and true or EmiNotSoRaidToolsDB.BloodlustTrackingEnabled
+    EmiNotSoRaidToolsDB.lustPosition = EmiNotSoRaidToolsDB.lustPosition or { point = "CENTER", x = 0, y = 200 }
 end
 
 -- Display frame for showing the text
@@ -140,6 +141,9 @@ local function ApplyLockState()
         petReminderFrame:SetBackdropColor(0, 0, 0, 0)
         UpdatePetDisplay()
     end
+    
+    -- Add this line to handle the Bloodlust frame:
+    if Emi_UpdateLustLockState then Emi_UpdateLustLockState() end
 end
 
 -- Configuration frame
@@ -301,6 +305,21 @@ petReminderCheckbox:SetScript("OnClick", function(self)
     UpdatePetDisplay()
 end)
 
+local bloodlustTrackingCheckbox = CreateFrame("CheckButton", nil, configFrame, "UICheckButtonTemplate")
+bloodlustTrackingCheckbox:SetPoint("TOP", petReminderCheckbox, "BOTTOM", 0, -10)
+bloodlustTrackingCheckbox.text:SetText("Enable Bloodlust Tracking with PEDRO")
+bloodlustTrackingCheckbox:SetScript("OnClick", function(self)
+    EmiNotSoRaidToolsDB.BloodlustTrackingEnabled = self:GetChecked()
+end)
+
+local testLustButton = CreateFrame("Button", nil, configFrame, "UIPanelButtonTemplate")
+testLustButton:SetSize(140, 26)
+testLustButton:SetPoint("LEFT", bloodlustTrackingCheckbox, "RIGHT", 10, 0)
+testLustButton:SetText("Test PEDRO")
+testLustButton:SetScript("OnClick", function()
+    if Emi_TestLust then Emi_TestLust() end
+end)
+
 fontSizeSlider:SetScript("OnValueChanged", function(self, value) SetFontSize(value) end)
 aliveInput:SetScript("OnEnterPressed", function(self) EmiNotSoRaidToolsDB.aliveText = self:GetText() UpdateDisplay() self:ClearFocus() end)
 deadInput:SetScript("OnEnterPressed", function(self) EmiNotSoRaidToolsDB.deadText = self:GetText() UpdateDisplay() self:ClearFocus() end)
@@ -326,9 +345,9 @@ SLASH_EMI1 = "/emi"
 SlashCmdList["EMI"] = function()
     InitializeDatabaseDefaults()
     if configFrame:IsShown() then
+        EmiNotSoRaidToolsDB.locked = true
         configFrame:Hide()
     else
-        EmiNotSoRaidToolsDB.locked = false
         aliveInput:SetText(EmiNotSoRaidToolsDB.aliveText)
         deadInput:SetText(EmiNotSoRaidToolsDB.deadText)
         fontSizeSlider:SetValue(EmiNotSoRaidToolsDB.fontSize)
