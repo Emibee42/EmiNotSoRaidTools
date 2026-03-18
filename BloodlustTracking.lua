@@ -111,7 +111,7 @@ local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
-eventFrame:SetScript("OnEvent", function(self, event, ...)
+eventFrame:SetScript("OnEvent", function(self, event, unitTarget, castGUID, spellID)
     if event == "PLAYER_ENTERING_WORLD" then
         if EmiNotSoRaidToolsDB then
             local p = EmiNotSoRaidToolsDB.lustPosition or {point="CENTER", x=0, y=200}
@@ -122,13 +122,15 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         return
     end
 
-    local _, _, spellID = ...
-    if EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.BloodlustTrackingEnabled then
-        if LUST_SPELLS[spellID] then
-            lustActive = true
-            lustEndTime = GetTime() + LUST_SPELLS[spellID]
-            ResetAnimation()
-            lustGifFrame:Show()
+    -- Check if spellID exists before using it as a table key
+    if event == "UNIT_SPELLCAST_SUCCEEDED" and spellID then
+        if EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.BloodlustTrackingEnabled then
+            if LUST_SPELLS[spellID] then
+                lustActive = true
+                lustEndTime = GetTime() + LUST_SPELLS[spellID]
+                ResetAnimation()
+                lustGifFrame:Show()
+            end
         end
     end
 end)
