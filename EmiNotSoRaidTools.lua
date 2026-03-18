@@ -148,7 +148,7 @@ end
 
 -- Configuration frame
 local configFrame = CreateFrame("Frame", ADDON_NAME .. "_Config", UIParent, "BackdropTemplate")
-configFrame:SetSize(420, 450)
+configFrame:SetSize(420, 500)
 configFrame:SetPoint("CENTER", 0, -200)
 configFrame:SetBackdrop({ bgFile = "Interface/Buttons/WHITE8x8" })
 configFrame:SetBackdropColor(0.08, 0.08, 0.08, 0.95)
@@ -314,7 +314,7 @@ end)
 
 local testLustButton = CreateFrame("Button", nil, configFrame, "UIPanelButtonTemplate")
 testLustButton:SetSize(140, 26)
-testLustButton:SetPoint("LEFT", bloodlustTrackingCheckbox, "RIGHT", 10, 0)
+testLustButton:SetPoint("LEFT", bloodlustTrackingCheckbox, "BOTTOM", 25, 0)
 testLustButton:SetText("Test PEDRO")
 testLustButton:SetScript("OnClick", function()
     if Emi_TestLust then Emi_TestLust() end
