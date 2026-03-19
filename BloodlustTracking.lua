@@ -108,7 +108,7 @@ function Emi_UpdateLustLockState()
 end
 
 local eventFrame = CreateFrame("Frame")
-eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+--eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 eventFrame:SetScript("OnEvent", function(self, event, unitTarget, castGUID, spellID)
@@ -125,7 +125,7 @@ eventFrame:SetScript("OnEvent", function(self, event, unitTarget, castGUID, spel
     -- Check if spellID exists before using it as a table key
     if event == "UNIT_SPELLCAST_SUCCEEDED" and spellID then
         if EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.BloodlustTrackingEnabled then
-            if LUST_SPELLS[spellID] then
+            if spellID and LUST_SPELLS[spellID] then
                 lustActive = true
                 lustEndTime = GetTime() + LUST_SPELLS[spellID]
                 ResetAnimation()
