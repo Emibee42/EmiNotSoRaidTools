@@ -6,7 +6,7 @@ local powerInfusionActive = false
 local powerInfusionEndTime = 0
 local powerInfusionIcon
 local powerInfusionResizeHandles = {}
-local POWER_INFUSION_MIN_SIZE = 40
+local POWER_INFUSION_MIN_SIZE = 24
 local POWER_INFUSION_MAX_SIZE = 400
 
 local function SavePowerInfusionState()

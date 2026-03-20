@@ -1,7 +1,7 @@
 local lustActive = false
 local lustEndTime = 0
 local pedroResizeHandles = {}
-local PEDRO_MIN_SIZE = 60
+local PEDRO_MIN_SIZE = 24
 local PEDRO_MAX_SIZE = 500
 
 local function SavePedroFrameState()

@@ -12,7 +12,7 @@ local LUST_SPELLS = {
 local lustActive = false
 local lustEndTime = 0
 local normalLustIcon
-local LUST_MIN_SIZE = 40
+local LUST_MIN_SIZE = 24
 local LUST_MAX_SIZE = 400
 
 local function SaveLustIconState()
