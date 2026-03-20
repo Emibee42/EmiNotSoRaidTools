@@ -7,6 +7,7 @@
 ## Category: Emi
 
 BloodlustTracking.lua
+PowerInfusionTracking.lua
 PedroLust.lua
 TabTextDisplay.lua
 TabReminder.lua

@@ -31,8 +31,19 @@ function Emi_BuildTrackingTab(ctx)
         end
     end)
 
+    local powerInfusionCheckbox = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
+    powerInfusionCheckbox:SetPoint("TOPLEFT", testLustButton, "BOTTOMLEFT", -8, -14)
+    powerInfusionCheckbox.text:SetText("Enable Power Infusion Tracking")
+    powerInfusionCheckbox:SetScript("OnClick", function(self)
+        EmiNotSoRaidToolsDB.PowerInfusionEnabled = self:GetChecked()
+        if ctx.updatePowerInfusionLockState then
+            ctx.updatePowerInfusionLockState()
+        end
+    end)
+
     return function()
         bloodlustTrackingCheckbox:SetChecked(EmiNotSoRaidToolsDB.lustIconEnabled)
         bloodlustPedroTrackingCheckbox:SetChecked(EmiNotSoRaidToolsDB.lustPedroEnabled)
+        powerInfusionCheckbox:SetChecked(EmiNotSoRaidToolsDB.PowerInfusionEnabled)
     end
 end

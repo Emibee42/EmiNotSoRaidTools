@@ -28,6 +28,8 @@ local function InitializeDatabaseDefaults()
     EmiNotSoRaidToolsDB.lustPedroEnabled = (EmiNotSoRaidToolsDB.lustPedroEnabled == nil) and true or EmiNotSoRaidToolsDB.lustPedroEnabled
     EmiNotSoRaidToolsDB.lustPosition = EmiNotSoRaidToolsDB.lustPosition or { point = "CENTER", x = 0, y = 200 }
     EmiNotSoRaidToolsDB.lustPedroPosition = EmiNotSoRaidToolsDB.lustPedroPosition or { point = "CENTER", x = 0, y = 200 }
+    EmiNotSoRaidToolsDB.PowerInfusionEnabled = (EmiNotSoRaidToolsDB.PowerInfusionEnabled == nil) and true or EmiNotSoRaidToolsDB.PowerInfusionEnabled
+    EmiNotSoRaidToolsDB.powerInfusionPosition = EmiNotSoRaidToolsDB.powerInfusionPosition or { point = "CENTER", x = 0, y = 300 }
 end
 
 local displayFrame = CreateFrame("Frame", ADDON_NAME .. "_Display", UIParent, "BackdropTemplate")
@@ -242,6 +244,7 @@ local function BuildTab(name, builder, page)
         updatePetDisplay = UpdatePetDisplay,
         updateLustLockState = Emi_UpdateLustLockState,
         testLust = Emi_TestLust,
+        updatePowerInfusionLockState = Emi_UpdatePowerInfusionLockState,
     })
 
     if type(refresh) == "function" then
