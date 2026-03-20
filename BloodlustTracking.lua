@@ -32,6 +32,8 @@ normalLustIcon:SetMovable(true)
 normalLustIcon:SetClampedToScreen(true)
 normalLustIcon:EnableMouse(true)
 normalLustIcon:RegisterForDrag("LeftButton")
+normalLustIcon:SetBackdrop({ bgFile = "Interface/ChatFrame/ChatFrameBackground" })
+normalLustIcon:SetBackdropColor(0, 0, 0, 0)
 
 normalLustIcon:SetScript("OnDragStart", normalLustIcon.StartMoving)
 normalLustIcon:SetScript("OnDragStop", function(self)
