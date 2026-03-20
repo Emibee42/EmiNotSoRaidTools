@@ -41,8 +41,9 @@ normalLustIcon:SetSize(80, 80)
 normalLustIcon:SetPoint("CENTER", 0, 200)
 normalLustIcon:SetMovable(true)
 normalLustIcon:SetResizable(true)
-normalLustIcon:SetMinResize(40, 40)
-normalLustIcon:SetMaxResize(400, 400)
+if normalLustIcon.SetResizeBounds then
+    normalLustIcon:SetResizeBounds(40, 40, 400, 400)
+end
 normalLustIcon:SetClampedToScreen(true)
 normalLustIcon:EnableMouse(true)
 normalLustIcon:RegisterForDrag("LeftButton")

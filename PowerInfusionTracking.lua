@@ -29,8 +29,9 @@ powerInfusionIcon:SetSize(80, 80)
 powerInfusionIcon:SetPoint("CENTER", 0, 300)
 powerInfusionIcon:SetMovable(true)
 powerInfusionIcon:SetResizable(true)
-powerInfusionIcon:SetMinResize(40, 40)
-powerInfusionIcon:SetMaxResize(400, 400)
+if powerInfusionIcon.SetResizeBounds then
+    powerInfusionIcon:SetResizeBounds(40, 40, 400, 400)
+end
 powerInfusionIcon:SetClampedToScreen(true)
 powerInfusionIcon:EnableMouse(true)
 powerInfusionIcon:RegisterForDrag("LeftButton")

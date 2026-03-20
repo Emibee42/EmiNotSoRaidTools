@@ -35,8 +35,9 @@ pedroLustGifFrame = CreateFrame("Frame", "EmipedroLustGifFrame", UIParent, "Back
 pedroLustGifFrame:SetSize(200, 200)
 pedroLustGifFrame:SetMovable(true)
 pedroLustGifFrame:SetResizable(true)
-pedroLustGifFrame:SetMinResize(60, 60)
-pedroLustGifFrame:SetMaxResize(500, 500)
+if pedroLustGifFrame.SetResizeBounds then
+    pedroLustGifFrame:SetResizeBounds(60, 60, 500, 500)
+end
 pedroLustGifFrame:SetClampedToScreen(true)
 pedroLustGifFrame:SetBackdrop({ bgFile = "Interface/ChatFrame/ChatFrameBackground" })
 pedroLustGifFrame:SetBackdropColor(0, 0, 0, 0)
