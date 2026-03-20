@@ -43,7 +43,9 @@ function Emi_BuildTrackingTab(ctx)
 
     local resizeDisclaimer = page:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     resizeDisclaimer:SetPoint("TOPLEFT", powerInfusionCheckbox, "BOTTOMLEFT", 6, -8)
+    resizeDisclaimer:SetWidth(340)
     resizeDisclaimer:SetJustifyH("LEFT")
+    resizeDisclaimer:SetJustifyV("TOP")
     resizeDisclaimer:SetText("Tip: Tracking frames can be resized from corners while unlocked. Hold Shift to keep proportions.")
 
     return function()
