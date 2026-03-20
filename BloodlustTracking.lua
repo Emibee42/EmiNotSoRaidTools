@@ -1,5 +1,3 @@
-local ADDON_NAME = "EmiNotSoRaidTools"
-
 local LUST_SPELLS = {
     [2825]   = 40, -- Bloodlust
     [32182]  = 40, -- Heroism
@@ -13,6 +11,18 @@ local LUST_SPELLS = {
 
 local lustActive = false
 local lustEndTime = 0
+
+local function SetLustState(active, endTime)
+    lustActive = active
+    lustEndTime = endTime or 0
+    if Emi_SetPedroLustState then
+        Emi_SetPedroLustState(lustActive, lustEndTime)
+    end
+end
+
+function Emi_GetLustState()
+    return lustActive, lustEndTime
+end
 
 -- Normal Bloodlust Icon Frame
 local normalLustIcon = CreateFrame("Frame", "EmiNormalLustIcon", UIParent, "BackdropTemplate")
@@ -51,11 +61,13 @@ function Emi_UpdateLustIconSize(size)
 end
 
 function Emi_TestLust()
-    lustActive = true
-    lustEndTime = GetTime() + 10
-    normalLustIcon:Show()
-    
-    if not EmiNotSoRaidToolsDB or not EmiNotSoRaidToolsDB.LustPedroEnabled then
+    SetLustState(true, GetTime() + 10)
+
+    if EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.LustIconEnabled then
+        normalLustIcon:Show()
+    end
+
+    if EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.LustPedroEnabled and pedroLustGifFrame then
         ResetPedroAnimation()
         pedroLustGifFrame:Show()
     end
@@ -68,7 +80,7 @@ function Emi_UpdateLustLockState()
     -- ======================
     -- PEDRO HANDLING
     -- ======================
-    if db.LustPedroEnabled then
+    if db.LustPedroEnabled and pedroLustGifFrame then
         if not db.locked and pedroLustGifFrame then
             pedroLustGifFrame:EnableMouse(true)
             pedroLustGifFrame:SetBackdropColor(0, 0, 0, 0.5)
@@ -79,7 +91,7 @@ function Emi_UpdateLustLockState()
             pedroLustGifFrame:SetBackdropColor(0, 0, 0, 0)
             if not lustActive then pedroLustGifFrame:Hide() end
         end
-    else
+    elseif pedroLustGifFrame then
         pedroLustGifFrame:Hide()
     end
 
@@ -113,13 +125,12 @@ eventFrame:SetScript("OnEvent", function(self, event, unit, castGUID, spellID)
     if event == "UNIT_SPELLCAST_SUCCEEDED" and spellID then
         if unit ~= "player" then return end
 
-        if EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.LustIconEnabled then
-            if LUST_SPELLS[spellID] then
-                lustActive = true
-                lustEndTime = GetTime() + LUST_SPELLS[spellID]
+        if EmiNotSoRaidToolsDB and LUST_SPELLS[spellID] then
+            if EmiNotSoRaidToolsDB.LustIconEnabled or EmiNotSoRaidToolsDB.LustPedroEnabled then
+                SetLustState(true, GetTime() + LUST_SPELLS[spellID])
 
                 -- PEDRO
-                if EmiNotSoRaidToolsDB.LustPedroEnabled then
+                if EmiNotSoRaidToolsDB.LustPedroEnabled and pedroLustGifFrame then
                     ResetPedroAnimation()
                     pedroLustGifFrame:Show()
                 end
@@ -145,7 +156,7 @@ normalLustIcon:SetScript("OnUpdate", function(self, elapsed)
         if remaining > 0 then
             lustIconText:SetFormattedText("%.1f", remaining)
         else
-            lustActive = false
+            SetLustState(false, 0)
             if db.locked then self:Hide() end
         end
     elseif not db.locked then

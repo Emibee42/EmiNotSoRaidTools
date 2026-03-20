@@ -1,18 +1,14 @@
-local ADDON_NAME = "EmiNotSoRaidTools"
-
-local LUST_SPELLS = {
-    [2825]   = 40, -- Bloodlust
-    [32182]  = 40, -- Heroism
-    [80353]  = 40, -- Time Warp
-    [264667] = 40, -- Primal Rage
-    [178207] = 40, -- Drums of Fury
-    [230935] = 40, -- Drums of the Mountain
-    [390386] = 40, -- Fury of the Aspects
-    [444257] = 40, -- Interdimensional Power Bank
-}
-
 local lustActive = false
 local lustEndTime = 0
+
+function Emi_SetPedroLustState(active, endTime)
+    lustActive = active
+    lustEndTime = endTime or 0
+end
+
+if Emi_GetLustState then
+    lustActive, lustEndTime = Emi_GetLustState()
+end
 
 pedroLustGifFrame = CreateFrame("Frame", "EmipedroLustGifFrame", UIParent, "BackdropTemplate")
 pedroLustGifFrame:SetSize(200, 200)
@@ -26,7 +22,6 @@ local lustGifTexture = pedroLustGifFrame:CreateTexture(nil, "OVERLAY")
 lustGifTexture:SetAllPoints()
 lustGifTexture:SetTexture("Interface\\AddOns\\EmiNotSoRaidTools\\media\\pedro.tga")
 
--- NEW: Timer Text
 local lustTimerText = pedroLustGifFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
 lustTimerText:SetPoint("BOTTOM", pedroLustGifFrame, "TOP", 0, 5)
 lustTimerText:SetTextColor(1, 1, 1)
@@ -41,7 +36,6 @@ local TEX_HEIGHT = 1536
 local FRAME_WIDTH = TEX_WIDTH / COLS
 local FRAME_HEIGHT = TEX_HEIGHT / ROWS
 
--- FIX: Function to set specific frame UVs immediately
 local function SetAnimationFrame(frameIdx)
     local col = frameIdx % COLS
     local row = math.floor(frameIdx / COLS)
