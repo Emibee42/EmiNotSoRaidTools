@@ -1,16 +1,36 @@
 local POWER_INFUSION_SPELLS = {
-    [10060]  = 10, -- Power Infusion
-    [45257]  = 10, -- Power Infusion (alternate)
+    [10060]  = 15, -- Power Infusion
 }
 
 local powerInfusionActive = false
 local powerInfusionEndTime = 0
+local powerInfusionIcon
+local powerInfusionResizeHandles = {}
+
+local function SavePowerInfusionState()
+    if not EmiNotSoRaidToolsDB then
+        return
+    end
+
+    local point, _, _, x, y = powerInfusionIcon:GetPoint()
+    EmiNotSoRaidToolsDB.powerInfusionPosition = { point = point, x = x, y = y }
+    EmiNotSoRaidToolsDB.powerInfusionSize = math.floor(powerInfusionIcon:GetWidth() + 0.5)
+end
+
+local function SetPowerInfusionResizeHandlesVisible(visible)
+    for _, handle in ipairs(powerInfusionResizeHandles) do
+        handle:SetShown(visible)
+    end
+end
 
 -- Power Infusion Icon Frame
-local powerInfusionIcon = CreateFrame("Frame", "EmiPowerInfusionIcon", UIParent, "BackdropTemplate")
+powerInfusionIcon = CreateFrame("Frame", "EmiPowerInfusionIcon", UIParent, "BackdropTemplate")
 powerInfusionIcon:SetSize(80, 80)
 powerInfusionIcon:SetPoint("CENTER", 0, 300)
 powerInfusionIcon:SetMovable(true)
+powerInfusionIcon:SetResizable(true)
+powerInfusionIcon:SetMinResize(40, 40)
+powerInfusionIcon:SetMaxResize(400, 400)
 powerInfusionIcon:SetClampedToScreen(true)
 powerInfusionIcon:EnableMouse(true)
 powerInfusionIcon:RegisterForDrag("LeftButton")
@@ -20,16 +40,38 @@ powerInfusionIcon:SetBackdropColor(0, 0, 0, 0)
 powerInfusionIcon:SetScript("OnDragStart", powerInfusionIcon.StartMoving)
 powerInfusionIcon:SetScript("OnDragStop", function(self)
     self:StopMovingOrSizing()
-    local point, _, _, x, y = self:GetPoint()
-    if EmiNotSoRaidToolsDB then
-        EmiNotSoRaidToolsDB.powerInfusionPosition = { point = point, x = x, y = y }
-    end
+    SavePowerInfusionState()
 end)
+
+local function CreatePowerInfusionResizeHandle(point)
+    local handle = CreateFrame("Button", nil, powerInfusionIcon, "BackdropTemplate")
+    handle:SetSize(10, 10)
+    handle:SetPoint(point, powerInfusionIcon, point, 0, 0)
+    handle:SetBackdrop({ bgFile = "Interface/Buttons/WHITE8x8" })
+    handle:SetBackdropColor(1, 1, 1, 0.9)
+    handle:Hide()
+    handle:SetFrameStrata("TOOLTIP")
+    handle:SetScript("OnMouseDown", function()
+        if EmiNotSoRaidToolsDB and not EmiNotSoRaidToolsDB.locked then
+            powerInfusionIcon:StartSizing(point)
+        end
+    end)
+    handle:SetScript("OnMouseUp", function()
+        powerInfusionIcon:StopMovingOrSizing()
+        SavePowerInfusionState()
+    end)
+    powerInfusionResizeHandles[#powerInfusionResizeHandles + 1] = handle
+end
+
+CreatePowerInfusionResizeHandle("TOPLEFT")
+CreatePowerInfusionResizeHandle("TOPRIGHT")
+CreatePowerInfusionResizeHandle("BOTTOMLEFT")
+CreatePowerInfusionResizeHandle("BOTTOMRIGHT")
 
 -- Icon texture
 local powerInfusionTexture = powerInfusionIcon:CreateTexture(nil, "BACKGROUND")
 powerInfusionTexture:SetAllPoints()
-powerInfusionTexture:SetTexture(135924) -- Power Infusion icon (spell icon ID)
+powerInfusionTexture:SetTexture(135939) -- Power Infusion icon (spell icon ID)
 
 -- Timer text
 local powerInfusionText = powerInfusionIcon:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
@@ -41,6 +83,7 @@ powerInfusionIcon:Hide()
 function Emi_UpdatePowerInfusionIconSize(size)
     if powerInfusionIcon then
         powerInfusionIcon:SetSize(size, size)
+        SavePowerInfusionState()
     end
 end
 
@@ -52,13 +95,16 @@ function Emi_UpdatePowerInfusionLockState()
         if not db.locked then
             powerInfusionIcon:EnableMouse(true)
             powerInfusionIcon:SetBackdropColor(0, 0, 0, 0.5)
+            SetPowerInfusionResizeHandlesVisible(true)
             powerInfusionIcon:Show()
         else
             powerInfusionIcon:EnableMouse(false)
             powerInfusionIcon:SetBackdropColor(0, 0, 0, 0)
+            SetPowerInfusionResizeHandlesVisible(false)
             if not powerInfusionActive then powerInfusionIcon:Hide() end
         end
     else
+        SetPowerInfusionResizeHandlesVisible(false)
         powerInfusionIcon:Hide()
     end
 end
@@ -69,6 +115,14 @@ eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 eventFrame:SetScript("OnEvent", function(self, event, unit, castGUID, spellID)
     if event == "PLAYER_ENTERING_WORLD" then
+        if EmiNotSoRaidToolsDB then
+            local p = EmiNotSoRaidToolsDB.powerInfusionPosition or { point = "CENTER", x = 0, y = 300 }
+            powerInfusionIcon:ClearAllPoints()
+            powerInfusionIcon:SetPoint(p.point, p.x, p.y)
+
+            local size = EmiNotSoRaidToolsDB.powerInfusionSize or 80
+            powerInfusionIcon:SetSize(size, size)
+        end
         Emi_UpdatePowerInfusionLockState()
     end
 

@@ -11,6 +11,17 @@ local LUST_SPELLS = {
 
 local lustActive = false
 local lustEndTime = 0
+local normalLustIcon
+
+local function SaveLustIconState()
+    if not EmiNotSoRaidToolsDB then
+        return
+    end
+
+    local point, _, _, x, y = normalLustIcon:GetPoint()
+    EmiNotSoRaidToolsDB.lustPosition = { point = point, x = x, y = y }
+    EmiNotSoRaidToolsDB.lustSize = math.floor(normalLustIcon:GetWidth() + 0.5)
+end
 
 local function SetLustState(active, endTime)
     lustActive = active
@@ -25,10 +36,13 @@ function Emi_GetLustState()
 end
 
 -- Normal Bloodlust Icon Frame
-local normalLustIcon = CreateFrame("Frame", "EmiNormalLustIcon", UIParent, "BackdropTemplate")
+normalLustIcon = CreateFrame("Frame", "EmiNormalLustIcon", UIParent, "BackdropTemplate")
 normalLustIcon:SetSize(80, 80)
 normalLustIcon:SetPoint("CENTER", 0, 200)
 normalLustIcon:SetMovable(true)
+normalLustIcon:SetResizable(true)
+normalLustIcon:SetMinResize(40, 40)
+normalLustIcon:SetMaxResize(400, 400)
 normalLustIcon:SetClampedToScreen(true)
 normalLustIcon:EnableMouse(true)
 normalLustIcon:RegisterForDrag("LeftButton")
@@ -38,11 +52,41 @@ normalLustIcon:SetBackdropColor(0, 0, 0, 0)
 normalLustIcon:SetScript("OnDragStart", normalLustIcon.StartMoving)
 normalLustIcon:SetScript("OnDragStop", function(self)
     self:StopMovingOrSizing()
-    local point, _, _, x, y = self:GetPoint()
-    if EmiNotSoRaidToolsDB then
-        EmiNotSoRaidToolsDB.lustPosition = { point = point, x = x, y = y }
-    end
+    SaveLustIconState()
 end)
+
+local lustResizeHandles = {}
+
+local function CreateLustResizeHandle(point)
+    local handle = CreateFrame("Button", nil, normalLustIcon, "BackdropTemplate")
+    handle:SetSize(10, 10)
+    handle:SetPoint(point, normalLustIcon, point, 0, 0)
+    handle:SetBackdrop({ bgFile = "Interface/Buttons/WHITE8x8" })
+    handle:SetBackdropColor(1, 1, 1, 0.9)
+    handle:Hide()
+    handle:SetFrameStrata("TOOLTIP")
+    handle:SetScript("OnMouseDown", function()
+        if EmiNotSoRaidToolsDB and not EmiNotSoRaidToolsDB.locked then
+            normalLustIcon:StartSizing(point)
+        end
+    end)
+    handle:SetScript("OnMouseUp", function()
+        normalLustIcon:StopMovingOrSizing()
+        SaveLustIconState()
+    end)
+    lustResizeHandles[#lustResizeHandles + 1] = handle
+end
+
+local function SetLustResizeHandlesVisible(visible)
+    for _, handle in ipairs(lustResizeHandles) do
+        handle:SetShown(visible)
+    end
+end
+
+CreateLustResizeHandle("TOPLEFT")
+CreateLustResizeHandle("TOPRIGHT")
+CreateLustResizeHandle("BOTTOMLEFT")
+CreateLustResizeHandle("BOTTOMRIGHT")
 
 -- Icon texture
 local lustIconTexture = normalLustIcon:CreateTexture(nil, "BACKGROUND")
@@ -59,6 +103,7 @@ normalLustIcon:Hide()
 function Emi_UpdateLustIconSize(size)
     if normalLustIcon then
         normalLustIcon:SetSize(size, size)
+        SaveLustIconState()
     end
 end
 
@@ -86,14 +131,17 @@ function Emi_UpdateLustLockState()
         if not db.locked and pedroLustGifFrame then
             pedroLustGifFrame:EnableMouse(true)
             pedroLustGifFrame:SetBackdropColor(0, 0, 0, 0.5)
+            if Emi_SetPedroResizeHandlesVisible then Emi_SetPedroResizeHandlesVisible(true) end
             ResetPedroAnimation()
             pedroLustGifFrame:Show()
         else
             pedroLustGifFrame:EnableMouse(false)
             pedroLustGifFrame:SetBackdropColor(0, 0, 0, 0)
+            if Emi_SetPedroResizeHandlesVisible then Emi_SetPedroResizeHandlesVisible(false) end
             if not lustActive then pedroLustGifFrame:Hide() end
         end
     elseif pedroLustGifFrame then
+        if Emi_SetPedroResizeHandlesVisible then Emi_SetPedroResizeHandlesVisible(false) end
         pedroLustGifFrame:Hide()
     end
 
@@ -104,13 +152,16 @@ function Emi_UpdateLustLockState()
         if not db.locked then
             normalLustIcon:EnableMouse(true)
             normalLustIcon:SetBackdropColor(0, 0, 0, 0.5)
+            SetLustResizeHandlesVisible(true)
             normalLustIcon:Show()
         else
             normalLustIcon:EnableMouse(false)
             normalLustIcon:SetBackdropColor(0, 0, 0, 0)
+            SetLustResizeHandlesVisible(false)
             if not lustActive then normalLustIcon:Hide() end
         end
     else
+        SetLustResizeHandlesVisible(false)
         normalLustIcon:Hide()
     end
 end
@@ -121,6 +172,14 @@ eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 eventFrame:SetScript("OnEvent", function(self, event, unit, castGUID, spellID)
     if event == "PLAYER_ENTERING_WORLD" then
+        if EmiNotSoRaidToolsDB then
+            local p = EmiNotSoRaidToolsDB.lustPosition or { point = "CENTER", x = 0, y = 200 }
+            normalLustIcon:ClearAllPoints()
+            normalLustIcon:SetPoint(p.point, p.x, p.y)
+
+            local size = EmiNotSoRaidToolsDB.lustSize or 80
+            normalLustIcon:SetSize(size, size)
+        end
         Emi_UpdateLustLockState()
     end
 

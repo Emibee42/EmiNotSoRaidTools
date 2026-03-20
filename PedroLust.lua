@@ -1,5 +1,26 @@
 local lustActive = false
 local lustEndTime = 0
+local pedroResizeHandles = {}
+
+local function SavePedroFrameState()
+    if not EmiNotSoRaidToolsDB then
+        return
+    end
+
+    local point, _, _, x, y = pedroLustGifFrame:GetPoint()
+    EmiNotSoRaidToolsDB.lustPedroPosition = { point = point, x = x, y = y }
+    EmiNotSoRaidToolsDB.lustPedroSize = math.floor(pedroLustGifFrame:GetWidth() + 0.5)
+end
+
+local function SetPedroResizeHandlesVisible(visible)
+    for _, handle in ipairs(pedroResizeHandles) do
+        handle:SetShown(visible)
+    end
+end
+
+function Emi_SetPedroResizeHandlesVisible(visible)
+    SetPedroResizeHandlesVisible(visible)
+end
 
 function Emi_SetPedroLustState(active, endTime)
     lustActive = active
@@ -13,10 +34,38 @@ end
 pedroLustGifFrame = CreateFrame("Frame", "EmipedroLustGifFrame", UIParent, "BackdropTemplate")
 pedroLustGifFrame:SetSize(200, 200)
 pedroLustGifFrame:SetMovable(true)
+pedroLustGifFrame:SetResizable(true)
+pedroLustGifFrame:SetMinResize(60, 60)
+pedroLustGifFrame:SetMaxResize(500, 500)
 pedroLustGifFrame:SetClampedToScreen(true)
 pedroLustGifFrame:SetBackdrop({ bgFile = "Interface/ChatFrame/ChatFrameBackground" })
 pedroLustGifFrame:SetBackdropColor(0, 0, 0, 0)
 pedroLustGifFrame:Hide()
+
+local function CreatePedroResizeHandle(point)
+    local handle = CreateFrame("Button", nil, pedroLustGifFrame, "BackdropTemplate")
+    handle:SetSize(10, 10)
+    handle:SetPoint(point, pedroLustGifFrame, point, 0, 0)
+    handle:SetBackdrop({ bgFile = "Interface/Buttons/WHITE8x8" })
+    handle:SetBackdropColor(1, 1, 1, 0.9)
+    handle:Hide()
+    handle:SetFrameStrata("TOOLTIP")
+    handle:SetScript("OnMouseDown", function()
+        if EmiNotSoRaidToolsDB and not EmiNotSoRaidToolsDB.locked then
+            pedroLustGifFrame:StartSizing(point)
+        end
+    end)
+    handle:SetScript("OnMouseUp", function()
+        pedroLustGifFrame:StopMovingOrSizing()
+        SavePedroFrameState()
+    end)
+    pedroResizeHandles[#pedroResizeHandles + 1] = handle
+end
+
+CreatePedroResizeHandle("TOPLEFT")
+CreatePedroResizeHandle("TOPRIGHT")
+CreatePedroResizeHandle("BOTTOMLEFT")
+CreatePedroResizeHandle("BOTTOMRIGHT")
 
 local lustGifTexture = pedroLustGifFrame:CreateTexture(nil, "OVERLAY")
 lustGifTexture:SetAllPoints()
@@ -51,6 +100,9 @@ function ResetPedroAnimation()
     pedroLustGifFrame:ClearAllPoints()
     pedroLustGifFrame:SetPoint(p.point, p.x, p.y)
 
+    local size = EmiNotSoRaidToolsDB.lustPedroSize or 200
+    pedroLustGifFrame:SetSize(size, size)
+
     currentFrame = 0
     timeSinceLastUpdate = 0
     SetAnimationFrame(0)
@@ -69,22 +121,25 @@ pedroLustGifFrame:RegisterForDrag("LeftButton")
 pedroLustGifFrame:SetScript("OnDragStart", pedroLustGifFrame.StartMoving)
 pedroLustGifFrame:SetScript("OnDragStop", function()
     pedroLustGifFrame:StopMovingOrSizing()
-    local point, _, _, x, y = pedroLustGifFrame:GetPoint()
-    if EmiNotSoRaidToolsDB then
-        EmiNotSoRaidToolsDB.lustPedroPosition = { point = point, x = x, y = y }
-    end
+    SavePedroFrameState()
 end)
 
 function Emi_UpdateLustSize(size)
-    if pedroLustGifFrame then pedroLustGifFrame:SetSize(size, size) end
+    if pedroLustGifFrame then
+        pedroLustGifFrame:SetSize(size, size)
+        SavePedroFrameState()
+    end
 end
 
 pedroLustGifFrame:SetScript("OnUpdate", function(self, elapsed)
     local db = EmiNotSoRaidToolsDB
     if not db or not db.lustPedroEnabled then
+        SetPedroResizeHandlesVisible(false)
         self:Hide()
         return
     end
+
+    SetPedroResizeHandlesVisible(not db.locked)
 
     if lustActive then
         UpdateAnimation(elapsed)

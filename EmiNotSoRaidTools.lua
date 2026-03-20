@@ -25,11 +25,14 @@ local function InitializeDatabaseDefaults()
     EmiNotSoRaidToolsDB.petReminderEnabled = (EmiNotSoRaidToolsDB.petReminderEnabled == nil) and false or EmiNotSoRaidToolsDB.petReminderEnabled
     EmiNotSoRaidToolsDB.petReminderPosition = EmiNotSoRaidToolsDB.petReminderPosition or { point = "CENTER", x = 0, y = 100 }
     EmiNotSoRaidToolsDB.lustIconEnabled = (EmiNotSoRaidToolsDB.lustIconEnabled == nil) and true or EmiNotSoRaidToolsDB.lustIconEnabled
-    EmiNotSoRaidToolsDB.lustPedroEnabled = (EmiNotSoRaidToolsDB.lustPedroEnabled == nil) and true or EmiNotSoRaidToolsDB.lustPedroEnabled
     EmiNotSoRaidToolsDB.lustPosition = EmiNotSoRaidToolsDB.lustPosition or { point = "CENTER", x = 0, y = 200 }
+    EmiNotSoRaidToolsDB.lustSize = EmiNotSoRaidToolsDB.lustSize or 34
+    EmiNotSoRaidToolsDB.lustPedroEnabled = (EmiNotSoRaidToolsDB.lustPedroEnabled == nil) and true or EmiNotSoRaidToolsDB.lustPedroEnabled
     EmiNotSoRaidToolsDB.lustPedroPosition = EmiNotSoRaidToolsDB.lustPedroPosition or { point = "CENTER", x = 0, y = 200 }
+    EmiNotSoRaidToolsDB.lustPedroSize = EmiNotSoRaidToolsDB.lustPedroSize or 120
     EmiNotSoRaidToolsDB.PowerInfusionEnabled = (EmiNotSoRaidToolsDB.PowerInfusionEnabled == nil) and true or EmiNotSoRaidToolsDB.PowerInfusionEnabled
     EmiNotSoRaidToolsDB.powerInfusionPosition = EmiNotSoRaidToolsDB.powerInfusionPosition or { point = "CENTER", x = 0, y = 300 }
+    EmiNotSoRaidToolsDB.powerInfusionSize = EmiNotSoRaidToolsDB.powerInfusionSize or 34
 end
 
 local displayFrame = CreateFrame("Frame", ADDON_NAME .. "_Display", UIParent, "BackdropTemplate")
@@ -161,6 +164,10 @@ local function ApplyLockState()
 
     if Emi_UpdateLustLockState then
         Emi_UpdateLustLockState()
+    end
+
+    if Emi_UpdatePowerInfusionLockState then
+        Emi_UpdatePowerInfusionLockState()
     end
 end
 
