@@ -289,6 +289,7 @@ SlashCmdList["EMI"] = function()
         return
     end
 
+    lockButton:SetText(EmiNotSoRaidToolsDB.locked and "Locked" or "Unlocked")
     RefreshConfigUI()
     ShowTab(activeTab)
     ApplyLockState()
