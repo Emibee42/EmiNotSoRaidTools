@@ -6,6 +6,8 @@ local powerInfusionActive = false
 local powerInfusionEndTime = 0
 local powerInfusionIcon
 local powerInfusionResizeHandles = {}
+local POWER_INFUSION_MIN_SIZE = 40
+local POWER_INFUSION_MAX_SIZE = 400
 
 local function SavePowerInfusionState()
     if not EmiNotSoRaidToolsDB then
@@ -30,13 +32,26 @@ powerInfusionIcon:SetPoint("CENTER", 0, 300)
 powerInfusionIcon:SetMovable(true)
 powerInfusionIcon:SetResizable(true)
 if powerInfusionIcon.SetResizeBounds then
-    powerInfusionIcon:SetResizeBounds(40, 40, 400, 400)
+    powerInfusionIcon:SetResizeBounds(POWER_INFUSION_MIN_SIZE, POWER_INFUSION_MIN_SIZE, POWER_INFUSION_MAX_SIZE, POWER_INFUSION_MAX_SIZE)
 end
 powerInfusionIcon:SetClampedToScreen(true)
 powerInfusionIcon:EnableMouse(true)
 powerInfusionIcon:RegisterForDrag("LeftButton")
 powerInfusionIcon:SetBackdrop({ bgFile = "Interface/ChatFrame/ChatFrameBackground" })
 powerInfusionIcon:SetBackdropColor(0, 0, 0, 0)
+
+local powerInfusionAspectAdjusting = false
+powerInfusionIcon:SetScript("OnSizeChanged", function(self, width, height)
+    if powerInfusionAspectAdjusting or not IsShiftKeyDown() then
+        return
+    end
+
+    local size = math.max(width, height)
+    size = math.max(POWER_INFUSION_MIN_SIZE, math.min(POWER_INFUSION_MAX_SIZE, size))
+    powerInfusionAspectAdjusting = true
+    self:SetSize(size, size)
+    powerInfusionAspectAdjusting = false
+end)
 
 powerInfusionIcon:SetScript("OnDragStart", powerInfusionIcon.StartMoving)
 powerInfusionIcon:SetScript("OnDragStop", function(self)
@@ -46,7 +61,7 @@ end)
 
 local function CreatePowerInfusionResizeHandle(point)
     local handle = CreateFrame("Button", nil, powerInfusionIcon, "BackdropTemplate")
-    handle:SetSize(10, 10)
+    handle:SetSize(5, 5)
     handle:SetPoint(point, powerInfusionIcon, point, 0, 0)
     handle:SetBackdrop({ bgFile = "Interface/Buttons/WHITE8x8" })
     handle:SetBackdropColor(1, 1, 1, 0.9)

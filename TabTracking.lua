@@ -41,6 +41,11 @@ function Emi_BuildTrackingTab(ctx)
         end
     end)
 
+    local resizeDisclaimer = page:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    resizeDisclaimer:SetPoint("TOPLEFT", powerInfusionCheckbox, "BOTTOMLEFT", 6, -8)
+    resizeDisclaimer:SetJustifyH("LEFT")
+    resizeDisclaimer:SetText("Tip: Tracking frames can be resized from corners while unlocked. Hold Shift to keep proportions.")
+
     return function()
         bloodlustTrackingCheckbox:SetChecked(EmiNotSoRaidToolsDB.lustIconEnabled)
         bloodlustPedroTrackingCheckbox:SetChecked(EmiNotSoRaidToolsDB.lustPedroEnabled)

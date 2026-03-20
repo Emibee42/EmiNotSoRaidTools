@@ -1,6 +1,8 @@
 local lustActive = false
 local lustEndTime = 0
 local pedroResizeHandles = {}
+local PEDRO_MIN_SIZE = 60
+local PEDRO_MAX_SIZE = 500
 
 local function SavePedroFrameState()
     if not EmiNotSoRaidToolsDB then
@@ -36,16 +38,29 @@ pedroLustGifFrame:SetSize(200, 200)
 pedroLustGifFrame:SetMovable(true)
 pedroLustGifFrame:SetResizable(true)
 if pedroLustGifFrame.SetResizeBounds then
-    pedroLustGifFrame:SetResizeBounds(60, 60, 500, 500)
+    pedroLustGifFrame:SetResizeBounds(PEDRO_MIN_SIZE, PEDRO_MIN_SIZE, PEDRO_MAX_SIZE, PEDRO_MAX_SIZE)
 end
 pedroLustGifFrame:SetClampedToScreen(true)
 pedroLustGifFrame:SetBackdrop({ bgFile = "Interface/ChatFrame/ChatFrameBackground" })
 pedroLustGifFrame:SetBackdropColor(0, 0, 0, 0)
 pedroLustGifFrame:Hide()
 
+local pedroAspectAdjusting = false
+pedroLustGifFrame:SetScript("OnSizeChanged", function(self, width, height)
+    if pedroAspectAdjusting or not IsShiftKeyDown() then
+        return
+    end
+
+    local size = math.max(width, height)
+    size = math.max(PEDRO_MIN_SIZE, math.min(PEDRO_MAX_SIZE, size))
+    pedroAspectAdjusting = true
+    self:SetSize(size, size)
+    pedroAspectAdjusting = false
+end)
+
 local function CreatePedroResizeHandle(point)
     local handle = CreateFrame("Button", nil, pedroLustGifFrame, "BackdropTemplate")
-    handle:SetSize(10, 10)
+    handle:SetSize(5, 5)
     handle:SetPoint(point, pedroLustGifFrame, point, 0, 0)
     handle:SetBackdrop({ bgFile = "Interface/Buttons/WHITE8x8" })
     handle:SetBackdropColor(1, 1, 1, 0.9)

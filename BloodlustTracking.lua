@@ -12,6 +12,8 @@ local LUST_SPELLS = {
 local lustActive = false
 local lustEndTime = 0
 local normalLustIcon
+local LUST_MIN_SIZE = 40
+local LUST_MAX_SIZE = 400
 
 local function SaveLustIconState()
     if not EmiNotSoRaidToolsDB then
@@ -42,13 +44,26 @@ normalLustIcon:SetPoint("CENTER", 0, 200)
 normalLustIcon:SetMovable(true)
 normalLustIcon:SetResizable(true)
 if normalLustIcon.SetResizeBounds then
-    normalLustIcon:SetResizeBounds(40, 40, 400, 400)
+    normalLustIcon:SetResizeBounds(LUST_MIN_SIZE, LUST_MIN_SIZE, LUST_MAX_SIZE, LUST_MAX_SIZE)
 end
 normalLustIcon:SetClampedToScreen(true)
 normalLustIcon:EnableMouse(true)
 normalLustIcon:RegisterForDrag("LeftButton")
 normalLustIcon:SetBackdrop({ bgFile = "Interface/ChatFrame/ChatFrameBackground" })
 normalLustIcon:SetBackdropColor(0, 0, 0, 0)
+
+local lustAspectAdjusting = false
+normalLustIcon:SetScript("OnSizeChanged", function(self, width, height)
+    if lustAspectAdjusting or not IsShiftKeyDown() then
+        return
+    end
+
+    local size = math.max(width, height)
+    size = math.max(LUST_MIN_SIZE, math.min(LUST_MAX_SIZE, size))
+    lustAspectAdjusting = true
+    self:SetSize(size, size)
+    lustAspectAdjusting = false
+end)
 
 normalLustIcon:SetScript("OnDragStart", normalLustIcon.StartMoving)
 normalLustIcon:SetScript("OnDragStop", function(self)
@@ -60,7 +75,7 @@ local lustResizeHandles = {}
 
 local function CreateLustResizeHandle(point)
     local handle = CreateFrame("Button", nil, normalLustIcon, "BackdropTemplate")
-    handle:SetSize(10, 10)
+    handle:SetSize(5, 5)
     handle:SetPoint(point, normalLustIcon, point, 0, 0)
     handle:SetBackdrop({ bgFile = "Interface/Buttons/WHITE8x8" })
     handle:SetBackdropColor(1, 1, 1, 0.9)
