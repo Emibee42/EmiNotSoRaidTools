@@ -47,7 +47,7 @@ local function SetAnimationFrame(frameIdx)
 end
 
 function ResetPedroAnimation()
-    local p = EmiNotSoRaidToolsDB.lustPosition or {point="CENTER", x=0, y=200}
+    local p = EmiNotSoRaidToolsDB.lustPedroPosition or {point="CENTER", x=0, y=200}
     pedroLustGifFrame:ClearAllPoints()
     pedroLustGifFrame:SetPoint(p.point, p.x, p.y)
 
@@ -71,7 +71,7 @@ pedroLustGifFrame:SetScript("OnDragStop", function()
     pedroLustGifFrame:StopMovingOrSizing()
     local point, _, _, x, y = pedroLustGifFrame:GetPoint()
     if EmiNotSoRaidToolsDB then
-        EmiNotSoRaidToolsDB.lustPosition = { point = point, x = x, y = y }
+        EmiNotSoRaidToolsDB.lustPedroPosition = { point = point, x = x, y = y }
     end
 end)
 
@@ -81,7 +81,7 @@ end
 
 pedroLustGifFrame:SetScript("OnUpdate", function(self, elapsed)
     local db = EmiNotSoRaidToolsDB
-    if not db or not db.LustPedroEnabled then
+    if not db or not db.lustPedroEnabled then
         self:Hide()
         return
     end

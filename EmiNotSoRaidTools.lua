@@ -24,9 +24,10 @@ local function InitializeDatabaseDefaults()
     EmiNotSoRaidToolsDB.position = EmiNotSoRaidToolsDB.position or { point = "CENTER", x = 0, y = 0 }
     EmiNotSoRaidToolsDB.petReminderEnabled = (EmiNotSoRaidToolsDB.petReminderEnabled == nil) and false or EmiNotSoRaidToolsDB.petReminderEnabled
     EmiNotSoRaidToolsDB.petReminderPosition = EmiNotSoRaidToolsDB.petReminderPosition or { point = "CENTER", x = 0, y = 100 }
-    EmiNotSoRaidToolsDB.LustIconEnabled = (EmiNotSoRaidToolsDB.LustIconEnabled == nil) and true or EmiNotSoRaidToolsDB.LustIconEnabled
-    EmiNotSoRaidToolsDB.LustPedroEnabled = (EmiNotSoRaidToolsDB.LustPedroEnabled == nil) and true or EmiNotSoRaidToolsDB.LustPedroEnabled
+    EmiNotSoRaidToolsDB.lustIconEnabled = (EmiNotSoRaidToolsDB.lustIconEnabled == nil) and true or EmiNotSoRaidToolsDB.lustIconEnabled
+    EmiNotSoRaidToolsDB.lustPedroEnabled = (EmiNotSoRaidToolsDB.lustPedroEnabled == nil) and true or EmiNotSoRaidToolsDB.lustPedroEnabled
     EmiNotSoRaidToolsDB.lustPosition = EmiNotSoRaidToolsDB.lustPosition or { point = "CENTER", x = 0, y = 200 }
+    EmiNotSoRaidToolsDB.lustPedroPosition = EmiNotSoRaidToolsDB.lustPedroPosition or { point = "CENTER", x = 0, y = 200 }
 end
 
 local displayFrame = CreateFrame("Frame", ADDON_NAME .. "_Display", UIParent, "BackdropTemplate")

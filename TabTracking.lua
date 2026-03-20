@@ -5,7 +5,7 @@ function Emi_BuildTrackingTab(ctx)
     bloodlustTrackingCheckbox:SetPoint("TOPLEFT", page, "TOPLEFT", 8, -10)
     bloodlustTrackingCheckbox.text:SetText("Enable Bloodlust Tracking")
     bloodlustTrackingCheckbox:SetScript("OnClick", function(self)
-        EmiNotSoRaidToolsDB.LustIconEnabled = self:GetChecked()
+        EmiNotSoRaidToolsDB.lustIconEnabled = self:GetChecked()
         if ctx.updateLustLockState then
             ctx.updateLustLockState()
         end
@@ -15,7 +15,7 @@ function Emi_BuildTrackingTab(ctx)
     bloodlustPedroTrackingCheckbox:SetPoint("TOPLEFT", bloodlustTrackingCheckbox, "BOTTOMLEFT", 0, -12)
     bloodlustPedroTrackingCheckbox.text:SetText("Enable Bloodlust Tracking with PEDRO")
     bloodlustPedroTrackingCheckbox:SetScript("OnClick", function(self)
-        EmiNotSoRaidToolsDB.LustPedroEnabled = self:GetChecked()
+        EmiNotSoRaidToolsDB.lustPedroEnabled = self:GetChecked()
         if ctx.updateLustLockState then
             ctx.updateLustLockState()
         end
@@ -32,7 +32,7 @@ function Emi_BuildTrackingTab(ctx)
     end)
 
     return function()
-        bloodlustTrackingCheckbox:SetChecked(EmiNotSoRaidToolsDB.LustIconEnabled)
-        bloodlustPedroTrackingCheckbox:SetChecked(EmiNotSoRaidToolsDB.LustPedroEnabled)
+        bloodlustTrackingCheckbox:SetChecked(EmiNotSoRaidToolsDB.lustIconEnabled)
+        bloodlustPedroTrackingCheckbox:SetChecked(EmiNotSoRaidToolsDB.lustPedroEnabled)
     end
 end

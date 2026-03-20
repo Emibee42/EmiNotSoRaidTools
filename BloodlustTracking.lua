@@ -65,11 +65,11 @@ end
 function Emi_TestLust()
     SetLustState(true, GetTime() + 10)
 
-    if EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.LustIconEnabled then
+    if EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.lustIconEnabled then
         normalLustIcon:Show()
     end
 
-    if EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.LustPedroEnabled and pedroLustGifFrame then
+    if EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.lustPedroEnabled and pedroLustGifFrame then
         ResetPedroAnimation()
         pedroLustGifFrame:Show()
     end
@@ -82,7 +82,7 @@ function Emi_UpdateLustLockState()
     -- ======================
     -- PEDRO HANDLING
     -- ======================
-    if db.LustPedroEnabled and pedroLustGifFrame then
+    if db.lustPedroEnabled and pedroLustGifFrame then
         if not db.locked and pedroLustGifFrame then
             pedroLustGifFrame:EnableMouse(true)
             pedroLustGifFrame:SetBackdropColor(0, 0, 0, 0.5)
@@ -100,7 +100,7 @@ function Emi_UpdateLustLockState()
     -- ======================
     -- NORMAL ICON HANDLING
     -- ======================
-    if db.LustIconEnabled then
+    if db.lustIconEnabled then
         if not db.locked then
             normalLustIcon:EnableMouse(true)
             normalLustIcon:SetBackdropColor(0, 0, 0, 0.5)
@@ -128,17 +128,17 @@ eventFrame:SetScript("OnEvent", function(self, event, unit, castGUID, spellID)
         if unit ~= "player" then return end
 
         if EmiNotSoRaidToolsDB and LUST_SPELLS[spellID] then
-            if EmiNotSoRaidToolsDB.LustIconEnabled or EmiNotSoRaidToolsDB.LustPedroEnabled then
+            if EmiNotSoRaidToolsDB.lustIconEnabled or EmiNotSoRaidToolsDB.lustPedroEnabled then
                 SetLustState(true, GetTime() + LUST_SPELLS[spellID])
 
                 -- PEDRO
-                if EmiNotSoRaidToolsDB.LustPedroEnabled and pedroLustGifFrame then
+                if EmiNotSoRaidToolsDB.lustPedroEnabled and pedroLustGifFrame then
                     ResetPedroAnimation()
                     pedroLustGifFrame:Show()
                 end
 
                 -- NORMAL ICON
-                if EmiNotSoRaidToolsDB.LustIconEnabled then
+                if EmiNotSoRaidToolsDB.lustIconEnabled then
                     normalLustIcon:Show()
                 end
             end
@@ -148,7 +148,7 @@ end)
 
 normalLustIcon:SetScript("OnUpdate", function(self, elapsed)
     local db = EmiNotSoRaidToolsDB
-    if not db or not db.LustIconEnabled then
+    if not db or not db.lustIconEnabled then
         self:Hide()
         return
     end
