@@ -14,145 +14,141 @@ local LUST_SPELLS = {
 local lustActive = false
 local lustEndTime = 0
 
-local lustGifFrame = CreateFrame("Frame", "EmiLustGifFrame", UIParent, "BackdropTemplate")
-lustGifFrame:SetSize(200, 200)
-lustGifFrame:SetMovable(true)
-lustGifFrame:SetClampedToScreen(true)
-lustGifFrame:SetBackdrop({ bgFile = "Interface/ChatFrame/ChatFrameBackground" })
-lustGifFrame:SetBackdropColor(0, 0, 0, 0)
-lustGifFrame:Hide()
+-- Normal Bloodlust Icon Frame
+local normalLustIcon = CreateFrame("Frame", "EmiNormalLustIcon", UIParent, "BackdropTemplate")
+normalLustIcon:SetSize(80, 80)
+normalLustIcon:SetPoint("CENTER", 0, 200)
+normalLustIcon:SetMovable(true)
+normalLustIcon:SetClampedToScreen(true)
+normalLustIcon:EnableMouse(true)
+normalLustIcon:RegisterForDrag("LeftButton")
 
-local lustGifTexture = lustGifFrame:CreateTexture(nil, "OVERLAY")
-lustGifTexture:SetAllPoints()
-lustGifTexture:SetTexture("Interface\\AddOns\\EmiNotSoRaidTools\\media\\pedro.tga")
-
--- NEW: Timer Text
-local lustTimerText = lustGifFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
-lustTimerText:SetPoint("BOTTOM", lustGifFrame, "TOP", 0, 5)
-lustTimerText:SetTextColor(1, 1, 1)
-
-local COLS, ROWS = 4, 8
-local TOTAL_FRAMES = COLS * ROWS
-local FRAME_DURATION = 1 / 6 
-local currentFrame = 0
-local timeSinceLastUpdate = 0
-local TEX_WIDTH = 768
-local TEX_HEIGHT = 1536
-local FRAME_WIDTH = TEX_WIDTH / COLS
-local FRAME_HEIGHT = TEX_HEIGHT / ROWS
-
--- FIX: Function to set specific frame UVs immediately
-local function SetAnimationFrame(frameIdx)
-    local col = frameIdx % COLS
-    local row = math.floor(frameIdx / COLS)
-    local left = (col * FRAME_WIDTH) / TEX_WIDTH
-    local right = ((col + 1) * FRAME_WIDTH) / TEX_WIDTH
-    local top = (row * FRAME_HEIGHT) / TEX_HEIGHT
-    local bottom = ((row + 1) * FRAME_HEIGHT) / TEX_HEIGHT
-    lustGifTexture:SetTexCoord(left, right, top, bottom)
-end
-
-local function ResetAnimation()
-    currentFrame = 0
-    timeSinceLastUpdate = 0
-    SetAnimationFrame(0)
-end
-
-local function UpdateAnimation(elapsed)
-    timeSinceLastUpdate = timeSinceLastUpdate + elapsed
-    while timeSinceLastUpdate >= FRAME_DURATION do
-        timeSinceLastUpdate = timeSinceLastUpdate - FRAME_DURATION
-        currentFrame = (currentFrame + 1) % TOTAL_FRAMES
-        SetAnimationFrame(currentFrame)
-    end
-end
-
-lustGifFrame:RegisterForDrag("LeftButton")
-lustGifFrame:SetScript("OnDragStart", lustGifFrame.StartMoving)
-lustGifFrame:SetScript("OnDragStop", function()
-    lustGifFrame:StopMovingOrSizing()
-    local point, _, _, x, y = lustGifFrame:GetPoint()
+normalLustIcon:SetScript("OnDragStart", normalLustIcon.StartMoving)
+normalLustIcon:SetScript("OnDragStop", function(self)
+    self:StopMovingOrSizing()
+    local point, _, _, x, y = self:GetPoint()
     if EmiNotSoRaidToolsDB then
         EmiNotSoRaidToolsDB.lustPosition = { point = point, x = x, y = y }
     end
 end)
 
-function Emi_UpdateLustSize(size)
-    if lustGifFrame then lustGifFrame:SetSize(size, size) end
+-- Icon texture
+local lustIconTexture = normalLustIcon:CreateTexture(nil, "BACKGROUND")
+lustIconTexture:SetAllPoints()
+lustIconTexture:SetTexture(136012) -- Bloodlust icon (spell icon ID)
+
+-- Timer text (CENTERED)
+local lustIconText = normalLustIcon:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
+lustIconText:SetPoint("CENTER")
+lustIconText:SetTextColor(1, 1, 1)
+
+normalLustIcon:Hide()
+
+function Emi_UpdateLustIconSize(size)
+    if normalLustIcon then
+        normalLustIcon:SetSize(size, size)
+    end
 end
 
 function Emi_TestLust()
     lustActive = true
     lustEndTime = GetTime() + 10
-    ResetAnimation()
-    lustGifFrame:Show()
+    normalLustIcon:Show()
+    
+    if not EmiNotSoRaidToolsDB or not EmiNotSoRaidToolsDB.LustPedroEnabled then
+        ResetPedroAnimation()
+        pedroLustGifFrame:Show()
+    end
 end
 
 function Emi_UpdateLustLockState()
     local db = EmiNotSoRaidToolsDB
-    if not db or not db.BloodlustTrackingEnabled then 
-        lustGifFrame:Hide()
-        return 
-    end
-    
-    if not db.locked then
-        lustGifFrame:EnableMouse(true)
-        lustGifFrame:SetBackdropColor(0, 0, 0, 0.5)
-        ResetAnimation()
-        lustGifFrame:Show() 
+    if not db then return end
+
+    -- ======================
+    -- PEDRO HANDLING
+    -- ======================
+    if db.LustPedroEnabled then
+        if not db.locked and pedroLustGifFrame then
+            pedroLustGifFrame:EnableMouse(true)
+            pedroLustGifFrame:SetBackdropColor(0, 0, 0, 0.5)
+            ResetPedroAnimation()
+            pedroLustGifFrame:Show()
+        else
+            pedroLustGifFrame:EnableMouse(false)
+            pedroLustGifFrame:SetBackdropColor(0, 0, 0, 0)
+            if not lustActive then pedroLustGifFrame:Hide() end
+        end
     else
-        lustGifFrame:EnableMouse(false)
-        lustGifFrame:SetBackdropColor(0, 0, 0, 0)
-        if not lustActive then lustGifFrame:Hide() end
+        pedroLustGifFrame:Hide()
+    end
+
+    -- ======================
+    -- NORMAL ICON HANDLING
+    -- ======================
+    if db.LustIconEnabled then
+        if not db.locked then
+            normalLustIcon:EnableMouse(true)
+            normalLustIcon:SetBackdropColor(0, 0, 0, 0.5)
+            normalLustIcon:Show()
+        else
+            normalLustIcon:EnableMouse(false)
+            normalLustIcon:SetBackdropColor(0, 0, 0, 0)
+            if not lustActive then normalLustIcon:Hide() end
+        end
+    else
+        normalLustIcon:Hide()
     end
 end
 
 local eventFrame = CreateFrame("Frame")
---eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
-eventFrame:SetScript("OnEvent", function(self, event, unitTarget, castGUID, spellID)
+eventFrame:SetScript("OnEvent", function(self, event, unit, castGUID, spellID)
     if event == "PLAYER_ENTERING_WORLD" then
-        if EmiNotSoRaidToolsDB then
-            local p = EmiNotSoRaidToolsDB.lustPosition or {point="CENTER", x=0, y=200}
-            lustGifFrame:ClearAllPoints()
-            lustGifFrame:SetPoint(p.point, p.x, p.y)
-            ResetAnimation()
-        end
-        return
+        Emi_UpdateLustLockState()
     end
 
-    -- Check if spellID exists before using it as a table key
     if event == "UNIT_SPELLCAST_SUCCEEDED" and spellID then
-        if EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.BloodlustTrackingEnabled then
-            if spellID and LUST_SPELLS[spellID] then
+        if unit ~= "player" then return end
+
+        if EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.LustIconEnabled then
+            if LUST_SPELLS[spellID] then
                 lustActive = true
                 lustEndTime = GetTime() + LUST_SPELLS[spellID]
-                ResetAnimation()
-                lustGifFrame:Show()
+
+                -- PEDRO
+                if EmiNotSoRaidToolsDB.LustPedroEnabled then
+                    ResetPedroAnimation()
+                    pedroLustGifFrame:Show()
+                end
+
+                -- NORMAL ICON
+                if EmiNotSoRaidToolsDB.LustIconEnabled then
+                    normalLustIcon:Show()
+                end
             end
         end
     end
 end)
 
-lustGifFrame:SetScript("OnUpdate", function(self, elapsed)
+normalLustIcon:SetScript("OnUpdate", function(self, elapsed)
     local db = EmiNotSoRaidToolsDB
-    if not db or not db.BloodlustTrackingEnabled then
+    if not db or not db.LustIconEnabled then
         self:Hide()
         return
     end
 
     if lustActive then
-        UpdateAnimation(elapsed)
         local remaining = lustEndTime - GetTime()
         if remaining > 0 then
-            lustTimerText:SetFormattedText("%.1fs", remaining)
+            lustIconText:SetFormattedText("%.1f", remaining)
         else
             lustActive = false
             if db.locked then self:Hide() end
         end
     elseif not db.locked then
-        UpdateAnimation(elapsed)
-        lustTimerText:SetText("TEST")
+        lustIconText:SetText("TEST")
     end
 end)

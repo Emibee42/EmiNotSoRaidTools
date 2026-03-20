@@ -35,7 +35,8 @@ local function InitializeDatabaseDefaults()
     EmiNotSoRaidToolsDB.position = EmiNotSoRaidToolsDB.position or { point = "CENTER", x = 0, y = 0 }
     EmiNotSoRaidToolsDB.petReminderEnabled = (EmiNotSoRaidToolsDB.petReminderEnabled == nil) and false or EmiNotSoRaidToolsDB.petReminderEnabled
     EmiNotSoRaidToolsDB.petReminderPosition = EmiNotSoRaidToolsDB.petReminderPosition or { point = "CENTER", x = 0, y = 100 }
-    EmiNotSoRaidToolsDB.BloodlustTrackingEnabled = (EmiNotSoRaidToolsDB.BloodlustTrackingEnabled == nil) and true or EmiNotSoRaidToolsDB.BloodlustTrackingEnabled
+    EmiNotSoRaidToolsDB.LustIconEnabled = (EmiNotSoRaidToolsDB.LustIconEnabled == nil) and true or EmiNotSoRaidToolsDB.LustIconEnabled
+    EmiNotSoRaidToolsDB.LustPedroEnabled = (EmiNotSoRaidToolsDB.LustPedroEnabled == nil) and true or EmiNotSoRaidToolsDB.LustPedroEnabled
     EmiNotSoRaidToolsDB.lustPosition = EmiNotSoRaidToolsDB.lustPosition or { point = "CENTER", x = 0, y = 200 }
 end
 
@@ -308,9 +309,21 @@ end)
 -- Find this section in your EmiNotSoRaidTools.lua and replace it:
 local bloodlustTrackingCheckbox = CreateFrame("CheckButton", nil, configFrame, "UICheckButtonTemplate")
 bloodlustTrackingCheckbox:SetPoint("TOP", petReminderCheckbox, "BOTTOM", 0, -10)
-bloodlustTrackingCheckbox.text:SetText("Enable Bloodlust Tracking with PEDRO")
+bloodlustTrackingCheckbox.text:SetText("Enable Bloodlust Tracking")
 bloodlustTrackingCheckbox:SetScript("OnClick", function(self)
-    EmiNotSoRaidToolsDB.BloodlustTrackingEnabled = self:GetChecked()
+    EmiNotSoRaidToolsDB.LustIconEnabled = self:GetChecked()
+    -- Apply changes immediately
+    if Emi_UpdateLustLockState then 
+        Emi_UpdateLustLockState() 
+    end
+end)
+
+-- Find this section in your EmiNotSoRaidTools.lua and replace it:
+local bloodlustPedroTrackingCheckbox = CreateFrame("CheckButton", nil, configFrame, "UICheckButtonTemplate")
+bloodlustPedroTrackingCheckbox:SetPoint("TOP", bloodlustTrackingCheckbox, "BOTTOM", 0, -10)
+bloodlustPedroTrackingCheckbox.text:SetText("Enable Bloodlust Tracking with PEDRO")
+bloodlustPedroTrackingCheckbox:SetScript("OnClick", function(self)
+    EmiNotSoRaidToolsDB.LustPedroEnabled = self:GetChecked()
     -- Apply changes immediately
     if Emi_UpdateLustLockState then 
         Emi_UpdateLustLockState() 
@@ -319,8 +332,8 @@ end)
 
 local testLustButton = CreateFrame("Button", nil, configFrame, "UIPanelButtonTemplate")
 testLustButton:SetSize(140, 26)
-testLustButton:SetPoint("LEFT", bloodlustTrackingCheckbox, "BOTTOM", 40, -10)
-testLustButton:SetText("Test PEDRO")
+testLustButton:SetPoint("LEFT", bloodlustPedroTrackingCheckbox, "BOTTOM", 40, -10)
+testLustButton:SetText("Test LustTracking")
 testLustButton:SetScript("OnClick", function()
     if Emi_TestLust then Emi_TestLust() end
 end)

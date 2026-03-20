@@ -8,3 +8,4 @@
 
 EmiNotSoRaidTools.lua
 BloodlustTracking.lua
+PedroLust.lua
