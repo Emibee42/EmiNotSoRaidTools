@@ -6,9 +6,9 @@
 ## SavedVariables: EmiNotSoRaidToolsDB
 ## Category: Emi
 
+BloodlustTracking.lua
+PedroLust.lua
 TabTextDisplay.lua
 TabReminder.lua
 TabTracking.lua
 EmiNotSoRaidTools.lua
-BloodlustTracking.lua
-PedroLust.lua
