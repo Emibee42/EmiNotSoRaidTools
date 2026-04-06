@@ -1,6 +1,6 @@
 local ADDON_NAME = "EmiNotSoRaidTools"
-local DEFAULT_ALIVE_TEXT = "Emi is the best"
-local DEFAULT_DEAD_TEXT = "Emi has fallen... but is still the best!"
+local DEFAULT_ALIVE_TEXT = "I am the best"
+local DEFAULT_DEAD_TEXT = "I have fallen..."
 
 EmiNSRT = EmiNSRT or {}
 
@@ -13,6 +13,7 @@ local FONT_TABLE = {
 
 local function InitializeDatabaseDefaults()
     EmiNotSoRaidToolsDB = EmiNotSoRaidToolsDB or {}
+    EmiNotSoRaidToolsDB.textEnabled = (EmiNotSoRaidToolsDB.textEnabled == nil) and true or EmiNotSoRaidToolsDB.textEnabled
     EmiNotSoRaidToolsDB.aliveText = EmiNotSoRaidToolsDB.aliveText or DEFAULT_ALIVE_TEXT
     EmiNotSoRaidToolsDB.deadText = EmiNotSoRaidToolsDB.deadText or DEFAULT_DEAD_TEXT
     EmiNotSoRaidToolsDB.fontSize = EmiNotSoRaidToolsDB.fontSize or 32
@@ -81,6 +82,16 @@ end
 
 local function UpdateDisplay()
     local db = EmiNotSoRaidToolsDB
+
+    if not db.textEnabled then
+        displayFrame:SetShown(not db.locked)
+        if db.locked then
+            return
+        end
+    else
+        displayFrame:Show()
+    end
+
     local fontPath = FONT_TABLE[db.font] or FONT_TABLE.FRIZQT
     displayText:SetFont(fontPath, db.fontSize, "")
 
@@ -154,6 +165,8 @@ local function ApplyLockState()
         petReminderFrame:SetBackdropColor(0, 0, 0, 0.3)
         petReminderFrame:Show()
         petReminderText:Show()
+        displayFrame:Show()
+        UpdateDisplay()
     else
         displayFrame:SetBackdropBorderColor(1, 1, 1, 0)
         displayFrame:SetBackdropColor(0, 0, 0, 0)

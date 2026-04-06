@@ -92,6 +92,19 @@ function Emi_BuildTextDisplayTab(ctx)
     end)
     deadColorBox:SetPoint("LEFT", deadColorButton, "RIGHT", 10, 0)
 
+    local textEnabledCheck = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
+    textEnabledCheck:SetPoint("TOPLEFT", deadColorButton, "BOTTOMLEFT", 0, -18)
+    textEnabledCheck:SetSize(24, 24)
+
+    local textEnabledLabel = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    textEnabledLabel:SetPoint("LEFT", textEnabledCheck, "RIGHT", 6, 1)
+    textEnabledLabel:SetText("Enable Text Display")
+
+    textEnabledCheck:SetScript("OnClick", function(self)
+        EmiNotSoRaidToolsDB.textEnabled = self:GetChecked()
+        ctx.updateDisplay()
+    end)
+
     local function SetFontSize(value)
         value = math.max(8, math.min(120, math.floor(value)))
         EmiNotSoRaidToolsDB.fontSize = value
@@ -148,5 +161,6 @@ function Emi_BuildTextDisplayTab(ctx)
         fontSizeInput:SetText(db.fontSize)
         UIDropDownMenu_SetText(fontDropdown, db.font)
         UpdateColorBoxes()
+        textEnabledCheck:SetChecked(db.textEnabled)
     end
 end
