@@ -9,6 +9,8 @@ local LUST_SPELLS = {
     [444257] = 40, -- Interdimensional Power Bank
 }
 
+local LUST_BUFF_IDS = { 2825, 32182, 80353, 264667, 178207, 230935, 390386, 444257 }
+
 local lustActive = false
 local lustEndTime = 0
 local normalLustIcon
@@ -30,6 +32,16 @@ local function SetLustState(active, endTime)
     lustEndTime = endTime or 0
     if Emi_SetPedroLustState then
         Emi_SetPedroLustState(lustActive, lustEndTime)
+    end
+
+    if lustActive and EmiNotSoRaidToolsDB then
+        if EmiNotSoRaidToolsDB.lustIconEnabled then
+            normalLustIcon:Show()
+        end
+        if EmiNotSoRaidToolsDB.lustPedroEnabled and pedroLustGifFrame then
+            ResetPedroAnimation()
+            pedroLustGifFrame:Show()
+        end
     end
 end
 
@@ -123,6 +135,23 @@ function Emi_UpdateLustIconSize(size)
     end
 end
 
+local function UpdateLustFromAuras()
+    local expirationTime
+    for _, spellID in ipairs(LUST_BUFF_IDS) do
+        local aura = C_UnitAuras.GetPlayerAuraBySpellID(spellID)
+        if aura and aura.expirationTime then
+            expirationTime = aura.expirationTime
+            break
+        end
+    end
+
+    if expirationTime and expirationTime > GetTime() then
+        SetLustState(true, expirationTime)
+    else
+        SetLustState(false, 0)
+    end
+end
+
 function Emi_TestLust()
     SetLustState(true, GetTime() + 10)
 
@@ -183,7 +212,8 @@ function Emi_UpdateLustLockState()
 end
 
 local eventFrame = CreateFrame("Frame")
-eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
+eventFrame:RegisterUnitEvent("UNIT_AURA", "player")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 eventFrame:SetScript("OnEvent", function(self, event, unit, castGUID, spellID)
@@ -196,7 +226,14 @@ eventFrame:SetScript("OnEvent", function(self, event, unit, castGUID, spellID)
             local size = EmiNotSoRaidToolsDB.lustSize or 80
             normalLustIcon:SetSize(size, size)
         end
+        UpdateLustFromAuras()
         Emi_UpdateLustLockState()
+        return
+    end
+
+    if event == "UNIT_AURA" and unit == "player" then
+        UpdateLustFromAuras()
+        return
     end
 
     if event == "UNIT_SPELLCAST_SUCCEEDED" and spellID then
@@ -205,17 +242,6 @@ eventFrame:SetScript("OnEvent", function(self, event, unit, castGUID, spellID)
         if EmiNotSoRaidToolsDB and LUST_SPELLS[spellID] then
             if EmiNotSoRaidToolsDB.lustIconEnabled or EmiNotSoRaidToolsDB.lustPedroEnabled then
                 SetLustState(true, GetTime() + LUST_SPELLS[spellID])
-
-                -- PEDRO
-                if EmiNotSoRaidToolsDB.lustPedroEnabled and pedroLustGifFrame then
-                    ResetPedroAnimation()
-                    pedroLustGifFrame:Show()
-                end
-
-                -- NORMAL ICON
-                if EmiNotSoRaidToolsDB.lustIconEnabled then
-                    normalLustIcon:Show()
-                end
             end
         end
     end

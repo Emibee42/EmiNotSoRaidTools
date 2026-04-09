@@ -31,7 +31,7 @@ local function InitializeDatabaseDefaults()
     EmiNotSoRaidToolsDB.lustPedroEnabled = (EmiNotSoRaidToolsDB.lustPedroEnabled == nil) and true or EmiNotSoRaidToolsDB.lustPedroEnabled
     EmiNotSoRaidToolsDB.lustPedroPosition = EmiNotSoRaidToolsDB.lustPedroPosition or { point = "CENTER", x = 0, y = 200 }
     EmiNotSoRaidToolsDB.lustPedroSize = EmiNotSoRaidToolsDB.lustPedroSize or 120
-    EmiNotSoRaidToolsDB.PowerInfusionEnabled = (EmiNotSoRaidToolsDB.PowerInfusionEnabled == nil) and true or EmiNotSoRaidToolsDB.PowerInfusionEnabled
+    EmiNotSoRaidToolsDB.PowerInfusionEnabled = (EmiNotSoRaidToolsDB.PowerInfusionEnabled == nil) and false or EmiNotSoRaidToolsDB.PowerInfusionEnabled
     EmiNotSoRaidToolsDB.powerInfusionPosition = EmiNotSoRaidToolsDB.powerInfusionPosition or { point = "CENTER", x = 0, y = 300 }
     EmiNotSoRaidToolsDB.powerInfusionSize = EmiNotSoRaidToolsDB.powerInfusionSize or 34
 end

@@ -1,8 +1,71 @@
 local lustActive = false
 local lustEndTime = 0
+local BLOODLUST_DURATION = 40
+local BLOODLUST_DEBUFFS = {
+    [57723]  = 32182,   -- Exhaustion → Heroism
+    [57724]  = 2825,    -- Sated → Bloodlust
+    [80354]  = 80353,   -- Temporal Displacement → Time Warp
+    [95809]  = 90355,   -- Insanity → Ancient Hysteria
+    [160455] = 264667,  -- Fatigued → Primal Rage
+    [264689] = 264667,  -- Fatigued → Primal Rage
+    [390435] = 390386,  -- Exhaustion → Fury of the Aspects
+}
+local LUST_BUFF_IDS = { 2825, 32182, 80353, 90355, 264667, 390386 }
 local pedroResizeHandles = {}
 local PEDRO_MIN_SIZE = 24
 local PEDRO_MAX_SIZE = 500
+
+local function GetPlayerLustAuraExpiration()
+    for _, spellID in ipairs(LUST_BUFF_IDS) do
+        local aura = C_UnitAuras.GetPlayerAuraBySpellID(spellID)
+        if aura and aura.expirationTime then
+            return aura.expirationTime
+        end
+    end
+    return nil
+end
+
+local function GetPlayerLustExpirationFromDebuff()
+    for debuffID in pairs(BLOODLUST_DEBUFFS) do
+        local aura = C_UnitAuras.GetPlayerAuraBySpellID(debuffID)
+        if aura and aura.expirationTime then
+            local dur = aura.duration
+            if not dur or dur <= 0 then
+                dur = 600
+            end
+            local appliedTime = aura.expirationTime - dur
+            if (GetTime() - appliedTime) < BLOODLUST_DURATION then
+                return appliedTime + BLOODLUST_DURATION
+            end
+        end
+    end
+    return nil
+end
+
+local function UpdateLustState()
+    local expirationTime = GetPlayerLustAuraExpiration()
+    if not expirationTime then
+        expirationTime = GetPlayerLustExpirationFromDebuff()
+    end
+
+    if expirationTime and expirationTime > GetTime() then
+        lustActive = true
+        lustEndTime = expirationTime
+    else
+        lustActive = false
+        lustEndTime = 0
+    end
+end
+
+local lustEventFrame = CreateFrame("Frame")
+lustEventFrame:SetScript("OnEvent", function(_, event, unit)
+    if event == "PLAYER_ENTERING_WORLD" or unit == "player" then
+        UpdateLustState()
+    end
+end)
+lustEventFrame:RegisterUnitEvent("UNIT_AURA", "player")
+lustEventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+UpdateLustState()
 
 local function SavePedroFrameState()
     if not EmiNotSoRaidToolsDB then
@@ -158,16 +221,18 @@ pedroLustGifFrame:SetScript("OnUpdate", function(self, elapsed)
     SetPedroResizeHandlesVisible(not db.locked)
 
     if lustActive then
-        UpdateAnimation(elapsed)
         local remaining = lustEndTime - GetTime()
         if remaining > 0 then
+            UpdateAnimation(elapsed)
             lustTimerText:SetFormattedText("%.1fs", remaining)
         else
             lustActive = false
-            if db.locked then self:Hide() end
+            self:Hide()
         end
     elseif not db.locked then
         UpdateAnimation(elapsed)
         lustTimerText:SetText("TEST")
+    else
+        self:Hide()
     end
 end)

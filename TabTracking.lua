@@ -40,6 +40,7 @@ function Emi_BuildTrackingTab(ctx)
             ctx.updatePowerInfusionLockState()
         end
     end)
+    powerInfusionCheckbox:Disable()
 
     local resizeDisclaimer = page:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     resizeDisclaimer:SetPoint("TOPLEFT", powerInfusionCheckbox, "BOTTOMLEFT", 6, -8)
