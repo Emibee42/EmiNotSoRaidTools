@@ -36,11 +36,16 @@ function Emi_BuildTrackingTab(ctx)
     powerInfusionCheckbox.text:SetText("Enable Power Infusion Tracking")
     powerInfusionCheckbox:SetScript("OnClick", function(self)
         EmiNotSoRaidToolsDB.PowerInfusionEnabled = self:GetChecked()
+        if self:GetChecked() then
+            self.text:SetTextColor(1, 1, 1)
+        else
+            self.text:SetTextColor(0.5, 0.5, 0.5)
+        end
         if ctx.updatePowerInfusionLockState then
             ctx.updatePowerInfusionLockState()
         end
     end)
-    powerInfusionCheckbox:Disable()
+    powerInfusionCheckbox:Disable()  -- Comment out to enable the checkbox
 
     local resizeDisclaimer = page:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     resizeDisclaimer:SetPoint("TOPLEFT", powerInfusionCheckbox, "BOTTOMLEFT", 6, -8)
@@ -53,5 +58,10 @@ function Emi_BuildTrackingTab(ctx)
         bloodlustTrackingCheckbox:SetChecked(EmiNotSoRaidToolsDB.lustIconEnabled)
         bloodlustPedroTrackingCheckbox:SetChecked(EmiNotSoRaidToolsDB.lustPedroEnabled)
         powerInfusionCheckbox:SetChecked(EmiNotSoRaidToolsDB.PowerInfusionEnabled)
+        if EmiNotSoRaidToolsDB.PowerInfusionEnabled then
+            powerInfusionCheckbox.text:SetTextColor(1, 1, 1)
+        else
+            powerInfusionCheckbox.text:SetTextColor(0.5, 0.5, 0.5)
+        end
     end
 end
