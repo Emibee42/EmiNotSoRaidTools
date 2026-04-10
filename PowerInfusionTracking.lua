@@ -70,7 +70,12 @@ powerInfusionIcon:SetPoint("CENTER", 0, 300)
 powerInfusionIcon:SetMovable(true)
 powerInfusionIcon:SetResizable(true)
 if powerInfusionIcon.SetResizeBounds then
-    powerInfusionIcon:SetResizeBounds(POWER_INFUSION_MIN_SIZE, POWER_INFUSION_MIN_SIZE, POWER_INFUSION_MAX_SIZE, POWER_INFUSION_MAX_SIZE)
+    powerInfusionIcon:SetResizeBounds(
+    POWER_INFUSION_MIN_SIZE,
+        POWER_INFUSION_MIN_SIZE,
+        POWER_INFUSION_MAX_SIZE,
+        POWER_INFUSION_MAX_SIZE
+    )
 end
 powerInfusionIcon:SetClampedToScreen(true)
 powerInfusionIcon:EnableMouse(true)
