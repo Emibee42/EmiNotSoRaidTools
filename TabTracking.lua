@@ -1,3 +1,5 @@
+-- luacheck: globals Emi_BuildTrackingTab CreateFrame EmiNotSoRaidToolsDB UnitClass
+
 function Emi_BuildTrackingTab(ctx)
     local page = ctx.page
 

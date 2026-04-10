@@ -1,3 +1,7 @@
+-- luacheck: globals EmiNotSoRaidToolsDB Emi_UpdatePowerInfusionIconSize Emi_UpdatePowerInfusionLockState
+-- luacheck: globals CreateFrame UIParent IsShiftKeyDown C_Timer UnitAffectingCombat
+-- luacheck: globals GetTime PlaySound SOUNDKIT
+
 local powerInfusionIcon
 local powerInfusionResizeHandles = {}
 local POWER_INFUSION_MIN_SIZE = 24
@@ -8,6 +12,8 @@ local piAlertActive = false
 local whisperTimer = nil
 local WHISPER_COOLDOWN = 5
 local POWER_INFUSION_ALERT_DURATION = 3
+
+local powerInfusionText
 
 local function IsPowerInfusionWhisper(message)
     if not message then
@@ -169,7 +175,12 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
 
     elseif event == "CHAT_MSG_WHISPER" then
         local message, sender = ...
-        if EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertEnabled and UnitAffectingCombat("player") and message and IsPowerInfusionWhisper(message) then
+        if EmiNotSoRaidToolsDB
+            and EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertEnabled
+            and UnitAffectingCombat("player")
+            and message
+            and IsPowerInfusionWhisper(message)
+        then
             local currentTime = GetTime()
             if currentTime - lastWhisperTime >= WHISPER_COOLDOWN then
                 lastWhisperTime = currentTime
@@ -189,7 +200,9 @@ powerInfusionIcon:SetScript("OnUpdate", function(self, elapsed)
 
     if piAlertActive then
         return
-    elseif not db.locked then
+    end
+
+    if not db.locked then
         powerInfusionText:SetText("")
         self:Show()
     else

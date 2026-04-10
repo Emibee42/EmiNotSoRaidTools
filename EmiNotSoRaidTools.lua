@@ -2,6 +2,13 @@ local ADDON_NAME = "EmiNotSoRaidTools"
 local DEFAULT_ALIVE_TEXT = "I am the best"
 local DEFAULT_DEAD_TEXT = "I have fallen..."
 
+-- luacheck: globals EmiNSRT EmiNotSoRaidToolsDB SLASH_EMI1 SlashCmdList
+-- luacheck: globals CreateFrame UIParent UnitIsDead UnitIsGhost UnitAffectingCombat
+-- luacheck: globals UnitExists UnitClass GetSpecialization IsSpellKnown C_UnitAuras
+-- luacheck: globals UnitAura UnitBuff C_Map Emi_UpdateLustLockState
+-- luacheck: globals Emi_UpdatePowerInfusionLockState Emi_BuildTextDisplayTab
+-- luacheck: globals Emi_BuildReminderTab Emi_BuildTrackingTab
+
 EmiNSRT = EmiNSRT or {}
 
 local FONT_TABLE = {
@@ -13,7 +20,9 @@ local FONT_TABLE = {
 
 local function InitializeDatabaseDefaults()
     EmiNotSoRaidToolsDB = EmiNotSoRaidToolsDB or {}
-    EmiNotSoRaidToolsDB.textEnabled = (EmiNotSoRaidToolsDB.textEnabled == nil) and true or EmiNotSoRaidToolsDB.textEnabled
+    if EmiNotSoRaidToolsDB.textEnabled == nil then
+        EmiNotSoRaidToolsDB.textEnabled = true
+    end
     EmiNotSoRaidToolsDB.aliveText = EmiNotSoRaidToolsDB.aliveText or DEFAULT_ALIVE_TEXT
     EmiNotSoRaidToolsDB.deadText = EmiNotSoRaidToolsDB.deadText or DEFAULT_DEAD_TEXT
     EmiNotSoRaidToolsDB.fontSize = EmiNotSoRaidToolsDB.fontSize or 32
@@ -21,20 +30,32 @@ local function InitializeDatabaseDefaults()
     EmiNotSoRaidToolsDB.font = EmiNotSoRaidToolsDB.font or "FRIZQT"
     EmiNotSoRaidToolsDB.colorAlive = EmiNotSoRaidToolsDB.colorAlive or { r = 1, g = 1, b = 1 }
     EmiNotSoRaidToolsDB.colorDead = EmiNotSoRaidToolsDB.colorDead or { r = 0.8, g = 0.2, b = 0.2 }
-    EmiNotSoRaidToolsDB.locked = (EmiNotSoRaidToolsDB.locked == nil) and true or EmiNotSoRaidToolsDB.locked
+    if EmiNotSoRaidToolsDB.locked == nil then
+        EmiNotSoRaidToolsDB.locked = true
+    end
     EmiNotSoRaidToolsDB.position = EmiNotSoRaidToolsDB.position or { point = "CENTER", x = 0, y = 0 }
-    EmiNotSoRaidToolsDB.petReminderEnabled = (EmiNotSoRaidToolsDB.petReminderEnabled == nil) and false or EmiNotSoRaidToolsDB.petReminderEnabled
+    if EmiNotSoRaidToolsDB.petReminderEnabled == nil then
+        EmiNotSoRaidToolsDB.petReminderEnabled = false
+    end
     EmiNotSoRaidToolsDB.petReminderPosition = EmiNotSoRaidToolsDB.petReminderPosition or { point = "CENTER", x = 0, y = 100 }
-    EmiNotSoRaidToolsDB.blackInkyReminderEnabled = (EmiNotSoRaidToolsDB.blackInkyReminderEnabled == nil) and false or EmiNotSoRaidToolsDB.blackInkyReminderEnabled
+    if EmiNotSoRaidToolsDB.blackInkyReminderEnabled == nil then
+        EmiNotSoRaidToolsDB.blackInkyReminderEnabled = false
+    end
     EmiNotSoRaidToolsDB.blackInkyReminderPosition = EmiNotSoRaidToolsDB.blackInkyReminderPosition or { point = "CENTER", x = 0, y = 150 }
     EmiNotSoRaidToolsDB.blackInkyZoneIDs = EmiNotSoRaidToolsDB.blackInkyZoneIDs or {}
-    EmiNotSoRaidToolsDB.lustIconEnabled = (EmiNotSoRaidToolsDB.lustIconEnabled == nil) and true or EmiNotSoRaidToolsDB.lustIconEnabled
+    if EmiNotSoRaidToolsDB.lustIconEnabled == nil then
+        EmiNotSoRaidToolsDB.lustIconEnabled = true
+    end
     EmiNotSoRaidToolsDB.lustPosition = EmiNotSoRaidToolsDB.lustPosition or { point = "CENTER", x = 0, y = 200 }
     EmiNotSoRaidToolsDB.lustSize = EmiNotSoRaidToolsDB.lustSize or 34
-    EmiNotSoRaidToolsDB.lustPedroEnabled = (EmiNotSoRaidToolsDB.lustPedroEnabled == nil) and true or EmiNotSoRaidToolsDB.lustPedroEnabled
+    if EmiNotSoRaidToolsDB.lustPedroEnabled == nil then
+        EmiNotSoRaidToolsDB.lustPedroEnabled = true
+    end
     EmiNotSoRaidToolsDB.lustPedroPosition = EmiNotSoRaidToolsDB.lustPedroPosition or { point = "CENTER", x = 0, y = 200 }
     EmiNotSoRaidToolsDB.lustPedroSize = EmiNotSoRaidToolsDB.lustPedroSize or 120
-    EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertEnabled = (EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertEnabled == nil) and false or EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertEnabled
+    if EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertEnabled == nil then
+        EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertEnabled = false
+    end
     EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertText = EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertText or "PI"
     EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertPosition = EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertPosition or { point = "CENTER", x = 0, y = 300 }
     EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertSize = EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertSize or 80
