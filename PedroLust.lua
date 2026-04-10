@@ -161,7 +161,7 @@ lustTimerText:SetTextColor(1, 1, 1)
 
 local COLS, ROWS = 4, 8
 local TOTAL_FRAMES = COLS * ROWS
-local FRAME_DURATION = 1 / 6 
+local FRAME_DURATION = 1 / 6
 local currentFrame = 0
 local timeSinceLastUpdate = 0
 local TEX_WIDTH = 768

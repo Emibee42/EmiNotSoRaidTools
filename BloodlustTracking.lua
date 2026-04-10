@@ -1,5 +1,6 @@
 -- luacheck: globals EmiNotSoRaidToolsDB Emi_SetPedroLustState Emi_GetLustState
 -- luacheck: globals Emi_SetPedroResizeHandlesVisible ResetPedroAnimation pedroLustGifFrame
+-- luacheck: globals Emi_UpdateLustIconSize Emi_TestLust Emi_UpdateLustLockState
 -- luacheck: globals CreateFrame UIParent IsShiftKeyDown GetTime C_UnitAuras
 
 local LUST_SPELLS = {
@@ -220,7 +221,7 @@ eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
 eventFrame:RegisterUnitEvent("UNIT_AURA", "player")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
-eventFrame:SetScript("OnEvent", function(self, event, unit, castGUID, spellID)
+eventFrame:SetScript("OnEvent", function(_, event, unit, _, spellID)
     if event == "PLAYER_ENTERING_WORLD" then
         if EmiNotSoRaidToolsDB then
             local p = EmiNotSoRaidToolsDB.lustPosition or { point = "CENTER", x = 0, y = 200 }
@@ -251,7 +252,7 @@ eventFrame:SetScript("OnEvent", function(self, event, unit, castGUID, spellID)
     end
 end)
 
-normalLustIcon:SetScript("OnUpdate", function(self, elapsed)
+normalLustIcon:SetScript("OnUpdate", function(self)
     local db = EmiNotSoRaidToolsDB
     if not db or not db.lustIconEnabled then
         self:Hide()
