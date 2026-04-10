@@ -34,9 +34,10 @@ local function InitializeDatabaseDefaults()
     EmiNotSoRaidToolsDB.lustPedroEnabled = (EmiNotSoRaidToolsDB.lustPedroEnabled == nil) and true or EmiNotSoRaidToolsDB.lustPedroEnabled
     EmiNotSoRaidToolsDB.lustPedroPosition = EmiNotSoRaidToolsDB.lustPedroPosition or { point = "CENTER", x = 0, y = 200 }
     EmiNotSoRaidToolsDB.lustPedroSize = EmiNotSoRaidToolsDB.lustPedroSize or 120
-    EmiNotSoRaidToolsDB.PowerInfusionEnabled = (EmiNotSoRaidToolsDB.PowerInfusionEnabled == nil) and false or EmiNotSoRaidToolsDB.PowerInfusionEnabled
-    EmiNotSoRaidToolsDB.powerInfusionPosition = EmiNotSoRaidToolsDB.powerInfusionPosition or { point = "CENTER", x = 0, y = 300 }
-    EmiNotSoRaidToolsDB.powerInfusionSize = EmiNotSoRaidToolsDB.powerInfusionSize or 34
+    EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertEnabled = (EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertEnabled == nil) and false or EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertEnabled
+    EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertText = EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertText or "PI"
+    EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertPosition = EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertPosition or { point = "CENTER", x = 0, y = 300 }
+    EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertSize = EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertSize or 80
 end
 
 local displayFrame = CreateFrame("Frame", ADDON_NAME .. "_Display", UIParent, "BackdropTemplate")
@@ -213,6 +214,17 @@ local function UpdateBlackInkyDisplay()
     blackInkyText:Show()
 end
 
+local function CanClassHavePet()
+    local class = select(2, UnitClass("player"))
+    local spec = GetSpecialization(false, false)
+    local hunterHasPet = spec == 1 or spec == 3 or (spec == 2 and not IsSpellKnown(1232995))
+
+    return (class == "MAGE" and IsSpellKnown(31687))
+        or (class == "HUNTER" and hunterHasPet)
+        or class == "WARLOCK"
+        or (class == "DEATHKNIGHT" and spec == 3)
+end
+
 local function UpdatePetDisplay()
     local db = EmiNotSoRaidToolsDB
 
@@ -232,22 +244,16 @@ local function UpdatePetDisplay()
         return
     end
 
-    local class = select(2, UnitClass("player"))
-    if class == "MAGE" then
-        if not UnitExists("pet") and IsSpellKnown(31687) then
+    if CanClassHavePet() then
+        if not UnitExists("pet") then
             petReminderFrame:Show()
             petReminderText:Show()
         else
             petReminderFrame:Hide()
         end
-        return
-    end
-
-    if not UnitExists("pet") then
-        petReminderFrame:Show()
-        petReminderText:Show()
     else
         petReminderFrame:Hide()
+        return
     end
 end
 
