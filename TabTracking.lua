@@ -31,24 +31,22 @@ function Emi_BuildTrackingTab(ctx)
         end
     end)
 
-    local powerInfusionCheckbox = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
-    powerInfusionCheckbox:SetPoint("TOPLEFT", testLustButton, "BOTTOMLEFT", -8, -14)
-    powerInfusionCheckbox.text:SetText("Enable Power Infusion Tracking")
-    powerInfusionCheckbox:SetScript("OnClick", function(self)
-        EmiNotSoRaidToolsDB.PowerInfusionEnabled = self:GetChecked()
-        if self:GetChecked() then
-            self.text:SetTextColor(1, 1, 1)
-        else
-            self.text:SetTextColor(0.5, 0.5, 0.5)
-        end
-        if ctx.updatePowerInfusionLockState then
-            ctx.updatePowerInfusionLockState()
-        end
-    end)
-    powerInfusionCheckbox:Disable()  -- Comment out to enable the checkbox
+    local _, playerClass = UnitClass("player")
+    local powerInfusionWhisperCheckbox
+    if playerClass == "PRIEST" then
+        powerInfusionWhisperCheckbox = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
+        powerInfusionWhisperCheckbox:SetPoint("TOPLEFT", testLustButton, "BOTTOMLEFT", 0, -14)
+        powerInfusionWhisperCheckbox.text:SetText("Enable PI whisper alerts")
+        powerInfusionWhisperCheckbox:SetScript("OnClick", function(self)
+            EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertEnabled = self:GetChecked()
+            if ctx.updatePowerInfusionLockState then
+                ctx.updatePowerInfusionLockState()
+            end
+        end)
+    end
 
     local resizeDisclaimer = page:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    resizeDisclaimer:SetPoint("TOPLEFT", powerInfusionCheckbox, "BOTTOMLEFT", 6, -8)
+    resizeDisclaimer:SetPoint("TOPLEFT", powerInfusionWhisperCheckbox or testLustButton, "BOTTOMLEFT", 6, -8)
     resizeDisclaimer:SetWidth(340)
     resizeDisclaimer:SetJustifyH("LEFT")
     resizeDisclaimer:SetJustifyV("TOP")
@@ -57,11 +55,8 @@ function Emi_BuildTrackingTab(ctx)
     return function()
         bloodlustTrackingCheckbox:SetChecked(EmiNotSoRaidToolsDB.lustIconEnabled)
         bloodlustPedroTrackingCheckbox:SetChecked(EmiNotSoRaidToolsDB.lustPedroEnabled)
-        powerInfusionCheckbox:SetChecked(EmiNotSoRaidToolsDB.PowerInfusionEnabled)
-        if EmiNotSoRaidToolsDB.PowerInfusionEnabled then
-            powerInfusionCheckbox.text:SetTextColor(1, 1, 1)
-        else
-            powerInfusionCheckbox.text:SetTextColor(0.5, 0.5, 0.5)
+        if powerInfusionWhisperCheckbox then
+            powerInfusionWhisperCheckbox:SetChecked(EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertEnabled)
         end
     end
 end

@@ -1,13 +1,42 @@
-local POWER_INFUSION_SPELLS = {
-    [10060]  = 15, -- Power Infusion
-}
-
-local powerInfusionActive = false
-local powerInfusionEndTime = 0
 local powerInfusionIcon
 local powerInfusionResizeHandles = {}
 local POWER_INFUSION_MIN_SIZE = 24
 local POWER_INFUSION_MAX_SIZE = 400
+
+local lastWhisperTime = 0
+local piAlertActive = false
+local whisperTimer = nil
+local WHISPER_COOLDOWN = 5
+local POWER_INFUSION_ALERT_DURATION = 3
+
+local function IsPowerInfusionWhisper(message)
+    if not message then
+        return false
+    end
+    local lower = message:lower()
+    return lower:find("%f[%a]pi%f[%A]") ~= nil
+end
+
+local function ShowPowerInfusionWhisperAlert()
+    if whisperTimer then
+        whisperTimer:Cancel()
+        whisperTimer = nil
+    end
+
+    piAlertActive = true
+    local text = (EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertText) or "PI"
+    powerInfusionText:SetText(text)
+    powerInfusionIcon:Show()
+
+    whisperTimer = C_Timer.NewTimer(POWER_INFUSION_ALERT_DURATION, function()
+        piAlertActive = false
+        if EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.locked then
+            powerInfusionIcon:Hide()
+        else
+            powerInfusionText:SetText("")
+        end
+    end)
+end
 
 local function SavePowerInfusionState()
     if not EmiNotSoRaidToolsDB then
@@ -15,8 +44,8 @@ local function SavePowerInfusionState()
     end
 
     local point, _, _, x, y = powerInfusionIcon:GetPoint()
-    EmiNotSoRaidToolsDB.powerInfusionPosition = { point = point, x = x, y = y }
-    EmiNotSoRaidToolsDB.powerInfusionSize = math.floor(powerInfusionIcon:GetWidth() + 0.5)
+    EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertPosition = { point = point, x = x, y = y }
+    EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertSize = math.floor(powerInfusionIcon:GetWidth() + 0.5)
 end
 
 local function SetPowerInfusionResizeHandlesVisible(visible)
@@ -84,12 +113,7 @@ CreatePowerInfusionResizeHandle("TOPRIGHT")
 CreatePowerInfusionResizeHandle("BOTTOMLEFT")
 CreatePowerInfusionResizeHandle("BOTTOMRIGHT")
 
--- Icon texture
-local powerInfusionTexture = powerInfusionIcon:CreateTexture(nil, "BACKGROUND")
-powerInfusionTexture:SetAllPoints()
-powerInfusionTexture:SetTexture(135939) -- Power Infusion icon (spell icon ID)
-
--- Timer text
+-- Alert text
 local powerInfusionText = powerInfusionIcon:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
 powerInfusionText:SetPoint("CENTER")
 powerInfusionText:SetTextColor(1, 1, 1)
@@ -107,7 +131,7 @@ function Emi_UpdatePowerInfusionLockState()
     local db = EmiNotSoRaidToolsDB
     if not db then return end
 
-    if db.PowerInfusionEnabled then
+    if db.PowerInfusionWhisperAlertEnabled then
         if not db.locked then
             powerInfusionIcon:EnableMouse(true)
             powerInfusionIcon:SetBackdropColor(0, 0, 0, 0.5)
@@ -117,7 +141,9 @@ function Emi_UpdatePowerInfusionLockState()
             powerInfusionIcon:EnableMouse(false)
             powerInfusionIcon:SetBackdropColor(0, 0, 0, 0)
             SetPowerInfusionResizeHandlesVisible(false)
-            if not powerInfusionActive then powerInfusionIcon:Hide() end
+            if not piAlertActive then
+                powerInfusionIcon:Hide()
+            end
         end
     else
         SetPowerInfusionResizeHandlesVisible(false)
@@ -126,49 +152,47 @@ function Emi_UpdatePowerInfusionLockState()
 end
 
 local eventFrame = CreateFrame("Frame")
-eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+eventFrame:RegisterEvent("CHAT_MSG_WHISPER")
 
-eventFrame:SetScript("OnEvent", function(self, event, unit, castGUID, spellID)
+eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "PLAYER_ENTERING_WORLD" then
         if EmiNotSoRaidToolsDB then
-            local p = EmiNotSoRaidToolsDB.powerInfusionPosition or { point = "CENTER", x = 0, y = 300 }
+            local p = EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertPosition or { point = "CENTER", x = 0, y = 300 }
             powerInfusionIcon:ClearAllPoints()
             powerInfusionIcon:SetPoint(p.point, p.x, p.y)
 
-            local size = EmiNotSoRaidToolsDB.powerInfusionSize or 80
+            local size = EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertSize or 80
             powerInfusionIcon:SetSize(size, size)
         end
         Emi_UpdatePowerInfusionLockState()
-    end
 
-    if event == "UNIT_SPELLCAST_SUCCEEDED" and spellID then
-        if unit ~= "player" then return end
-
-        if EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.PowerInfusionEnabled and POWER_INFUSION_SPELLS[spellID] then
-            powerInfusionActive = true
-            powerInfusionEndTime = GetTime() + POWER_INFUSION_SPELLS[spellID]
-            powerInfusionIcon:Show()
+    elseif event == "CHAT_MSG_WHISPER" then
+        local message, sender = ...
+        if EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertEnabled and UnitAffectingCombat("player") and message and IsPowerInfusionWhisper(message) then
+            local currentTime = GetTime()
+            if currentTime - lastWhisperTime >= WHISPER_COOLDOWN then
+                lastWhisperTime = currentTime
+                ShowPowerInfusionWhisperAlert()
+                PlaySound(SOUNDKIT.RAID_WARNING, "Master")
+            end
         end
     end
 end)
 
 powerInfusionIcon:SetScript("OnUpdate", function(self, elapsed)
     local db = EmiNotSoRaidToolsDB
-    if not db or not db.PowerInfusionEnabled then
+    if not db or not db.PowerInfusionWhisperAlertEnabled then
         self:Hide()
         return
     end
 
-    if powerInfusionActive then
-        local remaining = powerInfusionEndTime - GetTime()
-        if remaining > 0 then
-            powerInfusionText:SetFormattedText("%.1f", remaining)
-        else
-            powerInfusionActive = false
-            if db.locked then self:Hide() end
-        end
+    if piAlertActive then
+        return
     elseif not db.locked then
-        powerInfusionText:SetText("TEST")
+        powerInfusionText:SetText("")
+        self:Show()
+    else
+        self:Hide()
     end
 end)
