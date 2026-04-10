@@ -1,3 +1,5 @@
+-- luacheck: globals Emi_BuildReminderTab CreateFrame EmiNotSoRaidToolsDB C_Map wipe table tonumber
+
 function Emi_BuildReminderTab(ctx)
     local page = ctx.page
 

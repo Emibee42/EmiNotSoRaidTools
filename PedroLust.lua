@@ -1,3 +1,8 @@
+-- luacheck: globals EmiNotSoRaidToolsDB Emi_GetLustState Emi_SetPedroResizeHandlesVisible
+-- luacheck: globals Emi_SetPedroLustState Emi_UpdateLustSize Emi_UpdateLustLockState
+-- luacheck: globals CreateFrame UIParent IsShiftKeyDown GetTime C_UnitAuras
+-- luacheck: globals pedroLustGifFrame ResetPedroAnimation
+
 local lustActive = false
 local lustEndTime = 0
 local BLOODLUST_DURATION = 40

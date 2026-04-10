@@ -1,3 +1,7 @@
+-- luacheck: globals Emi_BuildTextDisplayTab UIDropDownMenu_Initialize LoadAddOn CreateFrame
+-- luacheck: globals UIDropDownMenu_SetWidth UIDropDownMenu_CreateInfo UIDropDownMenu_SetText
+-- luacheck: globals UIDropDownMenu_AddButton ColorPickerFrame EmiNotSoRaidToolsDB
+
 function Emi_BuildTextDisplayTab(ctx)
     local page = ctx.page
 

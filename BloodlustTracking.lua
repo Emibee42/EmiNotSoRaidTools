@@ -1,3 +1,7 @@
+-- luacheck: globals EmiNotSoRaidToolsDB Emi_SetPedroLustState Emi_GetLustState
+-- luacheck: globals Emi_SetPedroResizeHandlesVisible ResetPedroAnimation pedroLustGifFrame
+-- luacheck: globals CreateFrame UIParent IsShiftKeyDown GetTime C_UnitAuras
+
 local LUST_SPELLS = {
     [2825]   = 40, -- Bloodlust
     [32182]  = 40, -- Heroism
