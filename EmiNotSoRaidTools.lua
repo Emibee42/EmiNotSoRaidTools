@@ -25,6 +25,9 @@ local function InitializeDatabaseDefaults()
     EmiNotSoRaidToolsDB.position = EmiNotSoRaidToolsDB.position or { point = "CENTER", x = 0, y = 0 }
     EmiNotSoRaidToolsDB.petReminderEnabled = (EmiNotSoRaidToolsDB.petReminderEnabled == nil) and false or EmiNotSoRaidToolsDB.petReminderEnabled
     EmiNotSoRaidToolsDB.petReminderPosition = EmiNotSoRaidToolsDB.petReminderPosition or { point = "CENTER", x = 0, y = 100 }
+    EmiNotSoRaidToolsDB.blackInkyReminderEnabled = (EmiNotSoRaidToolsDB.blackInkyReminderEnabled == nil) and false or EmiNotSoRaidToolsDB.blackInkyReminderEnabled
+    EmiNotSoRaidToolsDB.blackInkyReminderPosition = EmiNotSoRaidToolsDB.blackInkyReminderPosition or { point = "CENTER", x = 0, y = 150 }
+    EmiNotSoRaidToolsDB.blackInkyZoneIDs = EmiNotSoRaidToolsDB.blackInkyZoneIDs or {}
     EmiNotSoRaidToolsDB.lustIconEnabled = (EmiNotSoRaidToolsDB.lustIconEnabled == nil) and true or EmiNotSoRaidToolsDB.lustIconEnabled
     EmiNotSoRaidToolsDB.lustPosition = EmiNotSoRaidToolsDB.lustPosition or { point = "CENTER", x = 0, y = 200 }
     EmiNotSoRaidToolsDB.lustSize = EmiNotSoRaidToolsDB.lustSize or 34
@@ -75,6 +78,26 @@ petReminderText:SetFont("Fonts\\FRIZQT__.TTF", 40, "OUTLINE")
 petReminderText:SetTextColor(1, 0.4, 0.1)
 petReminderText:SetText("SUMMON YOUR PET")
 
+local blackInkyFrame = CreateFrame("Frame", ADDON_NAME .. "_BlackInkyDisplay", UIParent, "BackdropTemplate")
+blackInkyFrame:SetSize(300, 50)
+blackInkyFrame:SetMovable(true)
+blackInkyFrame:EnableMouse(false)
+blackInkyFrame:RegisterForDrag("LeftButton")
+blackInkyFrame:SetBackdrop({ bgFile = "Interface/ChatFrame/ChatFrameBackground" })
+blackInkyFrame:SetBackdropColor(0, 0, 0, 0)
+blackInkyFrame:SetScript("OnDragStart", blackInkyFrame.StartMoving)
+blackInkyFrame:SetScript("OnDragStop", function()
+    blackInkyFrame:StopMovingOrSizing()
+    local point, _, _, x, y = blackInkyFrame:GetPoint()
+    EmiNotSoRaidToolsDB.blackInkyReminderPosition = { point = point, x = x, y = y }
+end)
+
+local blackInkyText = blackInkyFrame:CreateFontString(nil, "OVERLAY")
+blackInkyText:SetPoint("CENTER", blackInkyFrame, "CENTER")
+blackInkyText:SetFont("Fonts\\FRIZQT__.TTF", 40, "OUTLINE")
+blackInkyText:SetTextColor(1, 0.8, 0)
+blackInkyText:SetText("USE BLACK INKY POTION")
+
 local function UpdateFrameSize()
     local padding = 12
     displayFrame:SetSize(displayText:GetStringWidth() + padding * 2, displayText:GetStringHeight() + padding * 2)
@@ -110,6 +133,84 @@ end
 
 local function UpdatePetFrameSize()
     petReminderFrame:SetSize(petReminderText:GetStringWidth() + 20, petReminderText:GetStringHeight() + 20)
+end
+
+local function UpdateBlackInkyFrameSize()
+    blackInkyFrame:SetSize(blackInkyText:GetStringWidth() + 20, blackInkyText:GetStringHeight() + 20)
+end
+
+local function PlayerHasBuff(spellID)
+    if C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID then
+        local auraData = C_UnitAuras.GetPlayerAuraBySpellID(spellID)
+        return auraData ~= nil
+    elseif C_UnitAuras and C_UnitAuras.GetUnitAuraBySpellID then
+        local auraData = C_UnitAuras.GetUnitAuraBySpellID("player", spellID)
+        return auraData ~= nil
+    elseif UnitAura then
+        local auraName = UnitAura("player", spellID, "HELPFUL")
+        return auraName ~= nil
+    elseif UnitBuff then
+        return UnitBuff("player", spellID) ~= nil
+    end
+    return false
+end
+
+local function IsBlackInkyZoneActive()
+    local ids = EmiNotSoRaidToolsDB.blackInkyZoneIDs
+    if not ids or #ids == 0 then
+        return false
+    end
+
+    local mapID = C_Map.GetBestMapForUnit("player")
+    if not mapID then
+        return false
+    end
+
+    local currentMapID = mapID
+    while currentMapID do
+        for _, id in ipairs(ids) do
+            if id == currentMapID then
+                return true
+            end
+        end
+
+        local info = C_Map.GetMapInfo(currentMapID)
+        if not info or not info.parentMapID or info.parentMapID == currentMapID then
+            break
+        end
+        currentMapID = info.parentMapID
+    end
+
+    return false
+end
+
+local function UpdateBlackInkyDisplay()
+    local db = EmiNotSoRaidToolsDB
+    local hasBuff = PlayerHasBuff(185394)
+    local dead = UnitIsDead("player")
+    local ghost = UnitIsGhost("player")
+    local combat = UnitAffectingCombat("player")
+    local enabled = db.blackInkyReminderEnabled
+    local zoneActive = IsBlackInkyZoneActive()
+
+    if not db.locked then
+        if hasBuff or dead or ghost or combat or not enabled or not zoneActive then
+            blackInkyFrame:Hide()
+            return
+        end
+
+        blackInkyFrame:Show()
+        blackInkyText:Show()
+        return
+    end
+
+    if hasBuff or dead or ghost or combat or not enabled or not zoneActive then
+        blackInkyFrame:Hide()
+        return
+    end
+
+    blackInkyFrame:Show()
+    blackInkyText:Show()
 end
 
 local function UpdatePetDisplay()
@@ -157,14 +258,20 @@ local function ApplyLockState()
     displayFrame:EnableMouse(not isLocked)
     petReminderFrame:SetMovable(not isLocked)
     petReminderFrame:EnableMouse(not isLocked)
+    blackInkyFrame:SetMovable(not isLocked)
+    blackInkyFrame:EnableMouse(not isLocked)
 
     if not isLocked then
         displayFrame:SetBackdropBorderColor(1, 1, 1, 1)
         displayFrame:SetBackdropColor(0, 0, 0, 0.3)
         petReminderFrame:SetBackdropBorderColor(1, 1, 1, 1)
         petReminderFrame:SetBackdropColor(0, 0, 0, 0.3)
+        blackInkyFrame:SetBackdropBorderColor(1, 1, 1, 1)
+        blackInkyFrame:SetBackdropColor(0, 0, 0, 0.3)
         petReminderFrame:Show()
         petReminderText:Show()
+        blackInkyFrame:Show()
+        blackInkyText:Show()
         displayFrame:Show()
         UpdateDisplay()
     else
@@ -172,7 +279,10 @@ local function ApplyLockState()
         displayFrame:SetBackdropColor(0, 0, 0, 0)
         petReminderFrame:SetBackdropBorderColor(1, 1, 1, 0)
         petReminderFrame:SetBackdropColor(0, 0, 0, 0)
+        blackInkyFrame:SetBackdropBorderColor(1, 1, 1, 0)
+        blackInkyFrame:SetBackdropColor(0, 0, 0, 0)
         UpdatePetDisplay()
+        UpdateBlackInkyDisplay()
     end
 
     if Emi_UpdateLustLockState then
@@ -262,6 +372,7 @@ local function BuildTab(name, builder, page)
         fontTable = FONT_TABLE,
         updateDisplay = UpdateDisplay,
         updatePetDisplay = UpdatePetDisplay,
+        updateBlackInkyDisplay = UpdateBlackInkyDisplay,
         updateLustLockState = Emi_UpdateLustLockState,
         testLust = Emi_TestLust,
         updatePowerInfusionLockState = Emi_UpdatePowerInfusionLockState,
@@ -317,8 +428,13 @@ eventFrame:RegisterEvent("UNIT_HEALTH")
 eventFrame:RegisterEvent("UNIT_PET")
 eventFrame:RegisterEvent("TRAIT_CONFIG_UPDATED")
 eventFrame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+eventFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
+eventFrame:RegisterEvent("UNIT_AURA")
 
-eventFrame:SetScript("OnEvent", function(_, event, arg1)
+eventFrame:SetScript("OnEvent", function(_, event, arg1, arg2, arg3)
     if event == "ADDON_LOADED" and arg1 == ADDON_NAME then
         InitializeDatabaseDefaults()
 
@@ -330,9 +446,15 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1)
         petReminderFrame:ClearAllPoints()
         petReminderFrame:SetPoint(ppos.point, ppos.x, ppos.y)
 
+        local inkPos = EmiNotSoRaidToolsDB.blackInkyReminderPosition
+        blackInkyFrame:ClearAllPoints()
+        blackInkyFrame:SetPoint(inkPos.point, inkPos.x, inkPos.y)
+
         UpdatePetFrameSize()
+        UpdateBlackInkyFrameSize()
         UpdateDisplay()
         UpdatePetDisplay()
+        UpdateBlackInkyDisplay()
         ApplyLockState()
         ShowTab("TextDisplay")
         return
@@ -340,4 +462,5 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1)
 
     UpdateDisplay()
     UpdatePetDisplay()
+    UpdateBlackInkyDisplay()
 end)
