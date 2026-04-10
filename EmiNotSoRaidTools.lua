@@ -243,7 +243,7 @@ local function UpdatePetDisplay()
         return
     end
 
-    if UnitExists("pet") then
+    if not UnitExists("pet") then
         petReminderFrame:Show()
         petReminderText:Show()
     else
