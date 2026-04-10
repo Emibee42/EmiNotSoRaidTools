@@ -37,13 +37,11 @@ local function InitializeDatabaseDefaults()
     if EmiNotSoRaidToolsDB.petReminderEnabled == nil then
         EmiNotSoRaidToolsDB.petReminderEnabled = false
     end
-    EmiNotSoRaidToolsDB.petReminderPosition = 
-        EmiNotSoRaidToolsDB.petReminderPosition or { point = "CENTER", x = 0, y = 100 }
+    EmiNotSoRaidToolsDB.petReminderPosition = EmiNotSoRaidToolsDB.petReminderPosition or { point = "CENTER", x = 0, y = 100 }
     if EmiNotSoRaidToolsDB.blackInkyReminderEnabled == nil then
         EmiNotSoRaidToolsDB.blackInkyReminderEnabled = false
     end
-    EmiNotSoRaidToolsDB.blackInkyReminderPosition = 
-        EmiNotSoRaidToolsDB.blackInkyReminderPosition or { point = "CENTER", x = 0, y = 150 }
+    EmiNotSoRaidToolsDB.blackInkyReminderPosition = EmiNotSoRaidToolsDB.blackInkyReminderPosition or { point = "CENTER", x = 0, y = 150 }
     EmiNotSoRaidToolsDB.blackInkyZoneIDs = EmiNotSoRaidToolsDB.blackInkyZoneIDs or {}
     if EmiNotSoRaidToolsDB.lustIconEnabled == nil then
         EmiNotSoRaidToolsDB.lustIconEnabled = true
@@ -53,18 +51,14 @@ local function InitializeDatabaseDefaults()
     if EmiNotSoRaidToolsDB.lustPedroEnabled == nil then
         EmiNotSoRaidToolsDB.lustPedroEnabled = true
     end
-    EmiNotSoRaidToolsDB.lustPedroPosition = 
-        EmiNotSoRaidToolsDB.lustPedroPosition or { point = "CENTER", x = 0, y = 200 }
+    EmiNotSoRaidToolsDB.lustPedroPosition = EmiNotSoRaidToolsDB.lustPedroPosition or { point = "CENTER", x = 0, y = 200 }
     EmiNotSoRaidToolsDB.lustPedroSize = EmiNotSoRaidToolsDB.lustPedroSize or 120
     if EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertEnabled == nil then
         EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertEnabled = false
     end
-    EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertText = 
-        EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertText or "PI"
-    EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertPosition = 
-        EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertPosition or { point = "CENTER", x = 0, y = 300 }
-    EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertSize = 
-        EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertSize or 80
+    EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertText = EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertText or "PI"
+    EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertPosition = EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertPosition or { point = "CENTER", x = 0, y = 300 }
+    EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertSize = EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertSize or 80
 end
 
 local displayFrame = CreateFrame("Frame",
