@@ -61,10 +61,16 @@ local function InitializeDatabaseDefaults()
     EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertSize = EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertSize or 80
 end
 
-local displayFrame = CreateFrame("Frame", ADDON_NAME .. "_Display", UIParent, "BackdropTemplate")
+local displayFrame = CreateFrame("Frame",
+    ADDON_NAME .. "_Display",
+    UIParent,
+    "BackdropTemplate"
+)
 displayFrame:SetSize(1, 1)
 displayFrame:SetPoint("CENTER")
-local displayFrameBackdrop = { bgFile = "Interface/ChatFrame/ChatFrameBackground" }
+local displayFrameBackdrop = {
+    bgFile = "Interface/ChatFrame/ChatFrameBackground",
+}
 displayFrame:SetBackdrop(displayFrameBackdrop)
 displayFrame:SetBackdropColor(0, 0, 0, 0)
 displayFrame:SetBackdropBorderColor(1, 1, 1, 0)
@@ -81,12 +87,18 @@ end)
 local displayText = displayFrame:CreateFontString(nil, "OVERLAY")
 displayText:SetPoint("CENTER")
 
-local petReminderFrame = CreateFrame("Frame", ADDON_NAME .. "_PetDisplay", UIParent, "BackdropTemplate")
+local petReminderFrame = CreateFrame("Frame",
+    ADDON_NAME .. "_PetDisplay",
+    UIParent,
+    "BackdropTemplate"
+)
 petReminderFrame:SetSize(200, 50)
 petReminderFrame:SetMovable(true)
 petReminderFrame:EnableMouse(false)
 petReminderFrame:RegisterForDrag("LeftButton")
-local petReminderBackdrop = { bgFile = "Interface/ChatFrame/ChatFrameBackground" }
+local petReminderBackdrop = {
+    bgFile = "Interface/ChatFrame/ChatFrameBackground",
+}
 petReminderFrame:SetBackdrop(petReminderBackdrop)
 petReminderFrame:SetBackdropColor(0, 0, 0, 0)
 petReminderFrame:SetScript("OnDragStart", petReminderFrame.StartMoving)
@@ -102,12 +114,18 @@ petReminderText:SetFont("Fonts\\FRIZQT__.TTF", 40, "OUTLINE")
 petReminderText:SetTextColor(1, 0.4, 0.1)
 petReminderText:SetText("SUMMON YOUR PET")
 
-local blackInkyFrame = CreateFrame("Frame", ADDON_NAME .. "_BlackInkyDisplay", UIParent, "BackdropTemplate")
+local blackInkyFrame = CreateFrame("Frame",
+    ADDON_NAME .. "_BlackInkyDisplay",
+    UIParent,
+    "BackdropTemplate"
+)
 blackInkyFrame:SetSize(300, 50)
 blackInkyFrame:SetMovable(true)
 blackInkyFrame:EnableMouse(false)
 blackInkyFrame:RegisterForDrag("LeftButton")
-local blackInkyBackdrop = { bgFile = "Interface/ChatFrame/ChatFrameBackground" }
+local blackInkyBackdrop = {
+    bgFile = "Interface/ChatFrame/ChatFrameBackground",
+}
 blackInkyFrame:SetBackdrop(blackInkyBackdrop)
 blackInkyFrame:SetBackdropColor(0, 0, 0, 0)
 blackInkyFrame:SetScript("OnDragStart", blackInkyFrame.StartMoving)

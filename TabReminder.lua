@@ -26,6 +26,7 @@ function Emi_BuildReminderTab(ctx)
     reminderHint:SetJustifyH("LEFT")
     reminderHint:SetText("When unlocked, the reminder frame is shown for movement.")
 
+    local addZoneId
     local zoneIdInput = CreateFrame("EditBox", nil, page, "InputBoxTemplate")
     zoneIdInput:SetPoint("TOPLEFT", reminderHint, "BOTTOMLEFT", 0, -16)
     zoneIdInput:SetSize(140, 24)

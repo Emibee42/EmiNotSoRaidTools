@@ -12,6 +12,7 @@ local piAlertActive = false
 local whisperTimer = nil
 local WHISPER_COOLDOWN = 5
 local POWER_INFUSION_ALERT_DURATION = 3
+local powerInfusionText
 
 local function IsPowerInfusionWhisper(message)
     if not message then
@@ -122,7 +123,7 @@ CreatePowerInfusionResizeHandle("BOTTOMLEFT")
 CreatePowerInfusionResizeHandle("BOTTOMRIGHT")
 
 -- Alert text
-local powerInfusionText = powerInfusionIcon:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
+powerInfusionText = powerInfusionIcon:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
 powerInfusionText:SetPoint("CENTER")
 powerInfusionText:SetTextColor(1, 1, 1)
 
@@ -163,7 +164,7 @@ local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("CHAT_MSG_WHISPER")
 
-eventFrame:SetScript("OnEvent", function(self, event, ...)
+eventFrame:SetScript("OnEvent", function(_, event, ...)
     if event == "PLAYER_ENTERING_WORLD" then
         if EmiNotSoRaidToolsDB then
             local p = EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertPosition or { point = "CENTER", x = 0, y = 300 }
