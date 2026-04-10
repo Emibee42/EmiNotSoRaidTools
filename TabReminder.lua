@@ -66,7 +66,6 @@ function Emi_BuildReminderTab(ctx)
     zoneListContainer:SetSize(400, 180)
 
     local zoneRows = {}
-    local addZoneId
     local function RebuildZoneList()
         for _, row in ipairs(zoneRows) do
             row:Hide()
