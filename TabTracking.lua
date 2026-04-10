@@ -52,7 +52,8 @@ function Emi_BuildTrackingTab(ctx)
     resizeDisclaimer:SetWidth(340)
     resizeDisclaimer:SetJustifyH("LEFT")
     resizeDisclaimer:SetJustifyV("TOP")
-    resizeDisclaimer:SetText("Tip: Tracking frames can be resized from corners while unlocked. Hold Shift to keep proportions.")
+    local resizeTip = "Tip: Tracking frames can be resized from corners while unlocked. Hold Shift to keep proportions."
+    resizeDisclaimer:SetText(resizeTip)
 
     return function()
         bloodlustTrackingCheckbox:SetChecked(EmiNotSoRaidToolsDB.lustIconEnabled)

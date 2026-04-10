@@ -65,6 +65,7 @@ function Emi_BuildReminderTab(ctx)
     zoneListContainer:SetSize(400, 180)
 
     local zoneRows = {}
+    local addZoneId
     local function RebuildZoneList()
         for _, row in ipairs(zoneRows) do
             row:Hide()
@@ -103,7 +104,7 @@ function Emi_BuildReminderTab(ctx)
         end
     end
 
-    local function addZoneId(text)
+    addZoneId = function(text)
         local zoneId = tonumber(text and text:match("%d+"))
         if not zoneId then
             zoneStatus:SetText("Enter a numeric zone ID.")

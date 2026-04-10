@@ -13,8 +13,6 @@ local whisperTimer = nil
 local WHISPER_COOLDOWN = 5
 local POWER_INFUSION_ALERT_DURATION = 3
 
-local powerInfusionText
-
 local function IsPowerInfusionWhisper(message)
     if not message then
         return false
@@ -61,7 +59,11 @@ local function SetPowerInfusionResizeHandlesVisible(visible)
 end
 
 -- Power Infusion Icon Frame
-powerInfusionIcon = CreateFrame("Frame", "EmiPowerInfusionIcon", UIParent, "BackdropTemplate")
+powerInfusionIcon = CreateFrame("Frame",
+    "EmiPowerInfusionIcon",
+    UIParent,
+    "BackdropTemplate"
+)
 powerInfusionIcon:SetSize(80, 80)
 powerInfusionIcon:SetPoint("CENTER", 0, 300)
 powerInfusionIcon:SetMovable(true)
@@ -174,7 +176,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         Emi_UpdatePowerInfusionLockState()
 
     elseif event == "CHAT_MSG_WHISPER" then
-        local message, sender = ...
+        local message = ...
         if EmiNotSoRaidToolsDB
             and EmiNotSoRaidToolsDB.PowerInfusionWhisperAlertEnabled
             and UnitAffectingCombat("player")
@@ -191,7 +193,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
     end
 end)
 
-powerInfusionIcon:SetScript("OnUpdate", function(self, elapsed)
+powerInfusionIcon:SetScript("OnUpdate", function(self)
     local db = EmiNotSoRaidToolsDB
     if not db or not db.PowerInfusionWhisperAlertEnabled then
         self:Hide()

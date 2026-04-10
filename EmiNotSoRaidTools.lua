@@ -7,7 +7,7 @@ local DEFAULT_DEAD_TEXT = "I have fallen..."
 -- luacheck: globals UnitExists UnitClass GetSpecialization IsSpellKnown C_UnitAuras
 -- luacheck: globals UnitAura UnitBuff C_Map Emi_UpdateLustLockState
 -- luacheck: globals Emi_UpdatePowerInfusionLockState Emi_BuildTextDisplayTab
--- luacheck: globals Emi_BuildReminderTab Emi_BuildTrackingTab
+-- luacheck: globals Emi_BuildReminderTab Emi_BuildTrackingTab Emi_TestLust
 
 EmiNSRT = EmiNSRT or {}
 
@@ -64,7 +64,8 @@ end
 local displayFrame = CreateFrame("Frame", ADDON_NAME .. "_Display", UIParent, "BackdropTemplate")
 displayFrame:SetSize(1, 1)
 displayFrame:SetPoint("CENTER")
-displayFrame:SetBackdrop({ bgFile = "Interface/ChatFrame/ChatFrameBackground" })
+local displayFrameBackdrop = { bgFile = "Interface/ChatFrame/ChatFrameBackground" }
+displayFrame:SetBackdrop(displayFrameBackdrop)
 displayFrame:SetBackdropColor(0, 0, 0, 0)
 displayFrame:SetBackdropBorderColor(1, 1, 1, 0)
 displayFrame:SetMovable(false)
@@ -85,7 +86,8 @@ petReminderFrame:SetSize(200, 50)
 petReminderFrame:SetMovable(true)
 petReminderFrame:EnableMouse(false)
 petReminderFrame:RegisterForDrag("LeftButton")
-petReminderFrame:SetBackdrop({ bgFile = "Interface/ChatFrame/ChatFrameBackground" })
+local petReminderBackdrop = { bgFile = "Interface/ChatFrame/ChatFrameBackground" }
+petReminderFrame:SetBackdrop(petReminderBackdrop)
 petReminderFrame:SetBackdropColor(0, 0, 0, 0)
 petReminderFrame:SetScript("OnDragStart", petReminderFrame.StartMoving)
 petReminderFrame:SetScript("OnDragStop", function()
@@ -105,7 +107,8 @@ blackInkyFrame:SetSize(300, 50)
 blackInkyFrame:SetMovable(true)
 blackInkyFrame:EnableMouse(false)
 blackInkyFrame:RegisterForDrag("LeftButton")
-blackInkyFrame:SetBackdrop({ bgFile = "Interface/ChatFrame/ChatFrameBackground" })
+local blackInkyBackdrop = { bgFile = "Interface/ChatFrame/ChatFrameBackground" }
+blackInkyFrame:SetBackdrop(blackInkyBackdrop)
 blackInkyFrame:SetBackdropColor(0, 0, 0, 0)
 blackInkyFrame:SetScript("OnDragStart", blackInkyFrame.StartMoving)
 blackInkyFrame:SetScript("OnDragStop", function()
@@ -461,7 +464,7 @@ eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
 eventFrame:RegisterEvent("UNIT_AURA")
 
-eventFrame:SetScript("OnEvent", function(_, event, arg1, arg2, arg3)
+eventFrame:SetScript("OnEvent", function(_, event, arg1)
     if event == "ADDON_LOADED" and arg1 == ADDON_NAME then
         InitializeDatabaseDefaults()
 
