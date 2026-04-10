@@ -9,6 +9,9 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
     env:
       GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
     steps:
