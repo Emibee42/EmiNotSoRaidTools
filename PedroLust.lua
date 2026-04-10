@@ -1,32 +1,155 @@
-local ADDON_NAME = "EmiNotSoRaidTools"
-
-local LUST_SPELLS = {
-    [2825]   = 40, -- Bloodlust
-    [32182]  = 40, -- Heroism
-    [80353]  = 40, -- Time Warp
-    [264667] = 40, -- Primal Rage
-    [178207] = 40, -- Drums of Fury
-    [230935] = 40, -- Drums of the Mountain
-    [390386] = 40, -- Fury of the Aspects
-    [444257] = 40, -- Interdimensional Power Bank
-}
-
 local lustActive = false
 local lustEndTime = 0
+local BLOODLUST_DURATION = 40
+local BLOODLUST_DEBUFFS = {
+    [57723]  = 32182,   -- Exhaustion → Heroism
+    [57724]  = 2825,    -- Sated → Bloodlust
+    [80354]  = 80353,   -- Temporal Displacement → Time Warp
+    [95809]  = 90355,   -- Insanity → Ancient Hysteria
+    [160455] = 264667,  -- Fatigued → Primal Rage
+    [264689] = 264667,  -- Fatigued → Primal Rage
+    [390435] = 390386,  -- Exhaustion → Fury of the Aspects
+}
+local LUST_BUFF_IDS = { 2825, 32182, 80353, 90355, 264667, 390386 }
+local pedroResizeHandles = {}
+local PEDRO_MIN_SIZE = 24
+local PEDRO_MAX_SIZE = 500
+
+local function GetPlayerLustAuraExpiration()
+    for _, spellID in ipairs(LUST_BUFF_IDS) do
+        local aura = C_UnitAuras.GetPlayerAuraBySpellID(spellID)
+        if aura and aura.expirationTime then
+            return aura.expirationTime
+        end
+    end
+    return nil
+end
+
+local function GetPlayerLustExpirationFromDebuff()
+    for debuffID in pairs(BLOODLUST_DEBUFFS) do
+        local aura = C_UnitAuras.GetPlayerAuraBySpellID(debuffID)
+        if aura and aura.expirationTime then
+            local dur = aura.duration
+            if not dur or dur <= 0 then
+                dur = 600
+            end
+            local appliedTime = aura.expirationTime - dur
+            if (GetTime() - appliedTime) < BLOODLUST_DURATION then
+                return appliedTime + BLOODLUST_DURATION
+            end
+        end
+    end
+    return nil
+end
+
+local function UpdateLustState()
+    local expirationTime = GetPlayerLustAuraExpiration()
+    if not expirationTime then
+        expirationTime = GetPlayerLustExpirationFromDebuff()
+    end
+
+    if expirationTime and expirationTime > GetTime() then
+        lustActive = true
+        lustEndTime = expirationTime
+    else
+        lustActive = false
+        lustEndTime = 0
+    end
+end
+
+local lustEventFrame = CreateFrame("Frame")
+lustEventFrame:SetScript("OnEvent", function(_, event, unit)
+    if event == "PLAYER_ENTERING_WORLD" or unit == "player" then
+        UpdateLustState()
+    end
+end)
+lustEventFrame:RegisterUnitEvent("UNIT_AURA", "player")
+lustEventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+UpdateLustState()
+
+local function SavePedroFrameState()
+    if not EmiNotSoRaidToolsDB then
+        return
+    end
+
+    local point, _, _, x, y = pedroLustGifFrame:GetPoint()
+    EmiNotSoRaidToolsDB.lustPedroPosition = { point = point, x = x, y = y }
+    EmiNotSoRaidToolsDB.lustPedroSize = math.floor(pedroLustGifFrame:GetWidth() + 0.5)
+end
+
+local function SetPedroResizeHandlesVisible(visible)
+    for _, handle in ipairs(pedroResizeHandles) do
+        handle:SetShown(visible)
+    end
+end
+
+function Emi_SetPedroResizeHandlesVisible(visible)
+    SetPedroResizeHandlesVisible(visible)
+end
+
+function Emi_SetPedroLustState(active, endTime)
+    lustActive = active
+    lustEndTime = endTime or 0
+end
+
+if Emi_GetLustState then
+    lustActive, lustEndTime = Emi_GetLustState()
+end
 
 pedroLustGifFrame = CreateFrame("Frame", "EmipedroLustGifFrame", UIParent, "BackdropTemplate")
 pedroLustGifFrame:SetSize(200, 200)
 pedroLustGifFrame:SetMovable(true)
+pedroLustGifFrame:SetResizable(true)
+if pedroLustGifFrame.SetResizeBounds then
+    pedroLustGifFrame:SetResizeBounds(PEDRO_MIN_SIZE, PEDRO_MIN_SIZE, PEDRO_MAX_SIZE, PEDRO_MAX_SIZE)
+end
 pedroLustGifFrame:SetClampedToScreen(true)
 pedroLustGifFrame:SetBackdrop({ bgFile = "Interface/ChatFrame/ChatFrameBackground" })
 pedroLustGifFrame:SetBackdropColor(0, 0, 0, 0)
 pedroLustGifFrame:Hide()
 
+local pedroAspectAdjusting = false
+pedroLustGifFrame:SetScript("OnSizeChanged", function(self, width, height)
+    if pedroAspectAdjusting or not IsShiftKeyDown() then
+        return
+    end
+
+    local size = math.max(width, height)
+    size = math.max(PEDRO_MIN_SIZE, math.min(PEDRO_MAX_SIZE, size))
+    pedroAspectAdjusting = true
+    self:SetSize(size, size)
+    pedroAspectAdjusting = false
+end)
+
+local function CreatePedroResizeHandle(point)
+    local handle = CreateFrame("Button", nil, pedroLustGifFrame, "BackdropTemplate")
+    handle:SetSize(5, 5)
+    handle:SetPoint(point, pedroLustGifFrame, point, 0, 0)
+    handle:SetBackdrop({ bgFile = "Interface/Buttons/WHITE8x8" })
+    handle:SetBackdropColor(1, 1, 1, 0.9)
+    handle:Hide()
+    handle:SetFrameStrata("TOOLTIP")
+    handle:SetScript("OnMouseDown", function()
+        if EmiNotSoRaidToolsDB and not EmiNotSoRaidToolsDB.locked then
+            pedroLustGifFrame:StartSizing(point)
+        end
+    end)
+    handle:SetScript("OnMouseUp", function()
+        pedroLustGifFrame:StopMovingOrSizing()
+        SavePedroFrameState()
+    end)
+    pedroResizeHandles[#pedroResizeHandles + 1] = handle
+end
+
+CreatePedroResizeHandle("TOPLEFT")
+CreatePedroResizeHandle("TOPRIGHT")
+CreatePedroResizeHandle("BOTTOMLEFT")
+CreatePedroResizeHandle("BOTTOMRIGHT")
+
 local lustGifTexture = pedroLustGifFrame:CreateTexture(nil, "OVERLAY")
 lustGifTexture:SetAllPoints()
 lustGifTexture:SetTexture("Interface\\AddOns\\EmiNotSoRaidTools\\media\\pedro.tga")
 
--- NEW: Timer Text
 local lustTimerText = pedroLustGifFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalHuge")
 lustTimerText:SetPoint("BOTTOM", pedroLustGifFrame, "TOP", 0, 5)
 lustTimerText:SetTextColor(1, 1, 1)
@@ -41,7 +164,6 @@ local TEX_HEIGHT = 1536
 local FRAME_WIDTH = TEX_WIDTH / COLS
 local FRAME_HEIGHT = TEX_HEIGHT / ROWS
 
--- FIX: Function to set specific frame UVs immediately
 local function SetAnimationFrame(frameIdx)
     local col = frameIdx % COLS
     local row = math.floor(frameIdx / COLS)
@@ -53,9 +175,12 @@ local function SetAnimationFrame(frameIdx)
 end
 
 function ResetPedroAnimation()
-    local p = EmiNotSoRaidToolsDB.lustPosition or {point="CENTER", x=0, y=200}
+    local p = EmiNotSoRaidToolsDB.lustPedroPosition or {point="CENTER", x=0, y=200}
     pedroLustGifFrame:ClearAllPoints()
     pedroLustGifFrame:SetPoint(p.point, p.x, p.y)
+
+    local size = EmiNotSoRaidToolsDB.lustPedroSize or 200
+    pedroLustGifFrame:SetSize(size, size)
 
     currentFrame = 0
     timeSinceLastUpdate = 0
@@ -75,34 +200,39 @@ pedroLustGifFrame:RegisterForDrag("LeftButton")
 pedroLustGifFrame:SetScript("OnDragStart", pedroLustGifFrame.StartMoving)
 pedroLustGifFrame:SetScript("OnDragStop", function()
     pedroLustGifFrame:StopMovingOrSizing()
-    local point, _, _, x, y = pedroLustGifFrame:GetPoint()
-    if EmiNotSoRaidToolsDB then
-        EmiNotSoRaidToolsDB.lustPosition = { point = point, x = x, y = y }
-    end
+    SavePedroFrameState()
 end)
 
 function Emi_UpdateLustSize(size)
-    if pedroLustGifFrame then pedroLustGifFrame:SetSize(size, size) end
+    if pedroLustGifFrame then
+        pedroLustGifFrame:SetSize(size, size)
+        SavePedroFrameState()
+    end
 end
 
 pedroLustGifFrame:SetScript("OnUpdate", function(self, elapsed)
     local db = EmiNotSoRaidToolsDB
-    if not db or not db.LustPedroEnabled then
+    if not db or not db.lustPedroEnabled then
+        SetPedroResizeHandlesVisible(false)
         self:Hide()
         return
     end
 
+    SetPedroResizeHandlesVisible(not db.locked)
+
     if lustActive then
-        UpdateAnimation(elapsed)
         local remaining = lustEndTime - GetTime()
         if remaining > 0 then
+            UpdateAnimation(elapsed)
             lustTimerText:SetFormattedText("%.1fs", remaining)
         else
             lustActive = false
-            if db.locked then self:Hide() end
+            self:Hide()
         end
     elseif not db.locked then
         UpdateAnimation(elapsed)
         lustTimerText:SetText("TEST")
+    else
+        self:Hide()
     end
 end)

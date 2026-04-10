@@ -1,5 +1,3 @@
-local ADDON_NAME = "EmiNotSoRaidTools"
-
 local LUST_SPELLS = {
     [2825]   = 40, -- Bloodlust
     [32182]  = 40, -- Heroism
@@ -11,26 +9,112 @@ local LUST_SPELLS = {
     [444257] = 40, -- Interdimensional Power Bank
 }
 
+local LUST_BUFF_IDS = { 2825, 32182, 80353, 264667, 178207, 230935, 390386, 444257 }
+
 local lustActive = false
 local lustEndTime = 0
+local normalLustIcon
+local LUST_MIN_SIZE = 24
+local LUST_MAX_SIZE = 400
+
+local function SaveLustIconState()
+    if not EmiNotSoRaidToolsDB then
+        return
+    end
+
+    local point, _, _, x, y = normalLustIcon:GetPoint()
+    EmiNotSoRaidToolsDB.lustPosition = { point = point, x = x, y = y }
+    EmiNotSoRaidToolsDB.lustSize = math.floor(normalLustIcon:GetWidth() + 0.5)
+end
+
+local function SetLustState(active, endTime)
+    lustActive = active
+    lustEndTime = endTime or 0
+    if Emi_SetPedroLustState then
+        Emi_SetPedroLustState(lustActive, lustEndTime)
+    end
+
+    if lustActive and EmiNotSoRaidToolsDB then
+        if EmiNotSoRaidToolsDB.lustIconEnabled then
+            normalLustIcon:Show()
+        end
+        if EmiNotSoRaidToolsDB.lustPedroEnabled and pedroLustGifFrame then
+            ResetPedroAnimation()
+            pedroLustGifFrame:Show()
+        end
+    end
+end
+
+function Emi_GetLustState()
+    return lustActive, lustEndTime
+end
 
 -- Normal Bloodlust Icon Frame
-local normalLustIcon = CreateFrame("Frame", "EmiNormalLustIcon", UIParent, "BackdropTemplate")
+normalLustIcon = CreateFrame("Frame", "EmiNormalLustIcon", UIParent, "BackdropTemplate")
 normalLustIcon:SetSize(80, 80)
 normalLustIcon:SetPoint("CENTER", 0, 200)
 normalLustIcon:SetMovable(true)
+normalLustIcon:SetResizable(true)
+if normalLustIcon.SetResizeBounds then
+    normalLustIcon:SetResizeBounds(LUST_MIN_SIZE, LUST_MIN_SIZE, LUST_MAX_SIZE, LUST_MAX_SIZE)
+end
 normalLustIcon:SetClampedToScreen(true)
 normalLustIcon:EnableMouse(true)
 normalLustIcon:RegisterForDrag("LeftButton")
+normalLustIcon:SetBackdrop({ bgFile = "Interface/ChatFrame/ChatFrameBackground" })
+normalLustIcon:SetBackdropColor(0, 0, 0, 0)
+
+local lustAspectAdjusting = false
+normalLustIcon:SetScript("OnSizeChanged", function(self, width, height)
+    if lustAspectAdjusting or not IsShiftKeyDown() then
+        return
+    end
+
+    local size = math.max(width, height)
+    size = math.max(LUST_MIN_SIZE, math.min(LUST_MAX_SIZE, size))
+    lustAspectAdjusting = true
+    self:SetSize(size, size)
+    lustAspectAdjusting = false
+end)
 
 normalLustIcon:SetScript("OnDragStart", normalLustIcon.StartMoving)
 normalLustIcon:SetScript("OnDragStop", function(self)
     self:StopMovingOrSizing()
-    local point, _, _, x, y = self:GetPoint()
-    if EmiNotSoRaidToolsDB then
-        EmiNotSoRaidToolsDB.lustPosition = { point = point, x = x, y = y }
-    end
+    SaveLustIconState()
 end)
+
+local lustResizeHandles = {}
+
+local function CreateLustResizeHandle(point)
+    local handle = CreateFrame("Button", nil, normalLustIcon, "BackdropTemplate")
+    handle:SetSize(5, 5)
+    handle:SetPoint(point, normalLustIcon, point, 0, 0)
+    handle:SetBackdrop({ bgFile = "Interface/Buttons/WHITE8x8" })
+    handle:SetBackdropColor(1, 1, 1, 0.9)
+    handle:Hide()
+    handle:SetFrameStrata("TOOLTIP")
+    handle:SetScript("OnMouseDown", function()
+        if EmiNotSoRaidToolsDB and not EmiNotSoRaidToolsDB.locked then
+            normalLustIcon:StartSizing(point)
+        end
+    end)
+    handle:SetScript("OnMouseUp", function()
+        normalLustIcon:StopMovingOrSizing()
+        SaveLustIconState()
+    end)
+    lustResizeHandles[#lustResizeHandles + 1] = handle
+end
+
+local function SetLustResizeHandlesVisible(visible)
+    for _, handle in ipairs(lustResizeHandles) do
+        handle:SetShown(visible)
+    end
+end
+
+CreateLustResizeHandle("TOPLEFT")
+CreateLustResizeHandle("TOPRIGHT")
+CreateLustResizeHandle("BOTTOMLEFT")
+CreateLustResizeHandle("BOTTOMRIGHT")
 
 -- Icon texture
 local lustIconTexture = normalLustIcon:CreateTexture(nil, "BACKGROUND")
@@ -47,15 +131,35 @@ normalLustIcon:Hide()
 function Emi_UpdateLustIconSize(size)
     if normalLustIcon then
         normalLustIcon:SetSize(size, size)
+        SaveLustIconState()
+    end
+end
+
+local function UpdateLustFromAuras()
+    local expirationTime
+    for _, spellID in ipairs(LUST_BUFF_IDS) do
+        local aura = C_UnitAuras.GetPlayerAuraBySpellID(spellID)
+        if aura and aura.expirationTime then
+            expirationTime = aura.expirationTime
+            break
+        end
+    end
+
+    if expirationTime and expirationTime > GetTime() then
+        SetLustState(true, expirationTime)
+    else
+        SetLustState(false, 0)
     end
 end
 
 function Emi_TestLust()
-    lustActive = true
-    lustEndTime = GetTime() + 10
-    normalLustIcon:Show()
-    
-    if not EmiNotSoRaidToolsDB or not EmiNotSoRaidToolsDB.LustPedroEnabled then
+    SetLustState(true, GetTime() + 10)
+
+    if EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.lustIconEnabled then
+        normalLustIcon:Show()
+    end
+
+    if EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.lustPedroEnabled and pedroLustGifFrame then
         ResetPedroAnimation()
         pedroLustGifFrame:Show()
     end
@@ -68,66 +172,76 @@ function Emi_UpdateLustLockState()
     -- ======================
     -- PEDRO HANDLING
     -- ======================
-    if db.LustPedroEnabled then
+    if db.lustPedroEnabled and pedroLustGifFrame then
         if not db.locked and pedroLustGifFrame then
             pedroLustGifFrame:EnableMouse(true)
             pedroLustGifFrame:SetBackdropColor(0, 0, 0, 0.5)
+            if Emi_SetPedroResizeHandlesVisible then Emi_SetPedroResizeHandlesVisible(true) end
             ResetPedroAnimation()
             pedroLustGifFrame:Show()
         else
             pedroLustGifFrame:EnableMouse(false)
             pedroLustGifFrame:SetBackdropColor(0, 0, 0, 0)
+            if Emi_SetPedroResizeHandlesVisible then Emi_SetPedroResizeHandlesVisible(false) end
             if not lustActive then pedroLustGifFrame:Hide() end
         end
-    else
+    elseif pedroLustGifFrame then
+        if Emi_SetPedroResizeHandlesVisible then Emi_SetPedroResizeHandlesVisible(false) end
         pedroLustGifFrame:Hide()
     end
 
     -- ======================
     -- NORMAL ICON HANDLING
     -- ======================
-    if db.LustIconEnabled then
+    if db.lustIconEnabled then
         if not db.locked then
             normalLustIcon:EnableMouse(true)
             normalLustIcon:SetBackdropColor(0, 0, 0, 0.5)
+            SetLustResizeHandlesVisible(true)
             normalLustIcon:Show()
         else
             normalLustIcon:EnableMouse(false)
             normalLustIcon:SetBackdropColor(0, 0, 0, 0)
+            SetLustResizeHandlesVisible(false)
             if not lustActive then normalLustIcon:Hide() end
         end
     else
+        SetLustResizeHandlesVisible(false)
         normalLustIcon:Hide()
     end
 end
 
 local eventFrame = CreateFrame("Frame")
-eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+eventFrame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
+eventFrame:RegisterUnitEvent("UNIT_AURA", "player")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 eventFrame:SetScript("OnEvent", function(self, event, unit, castGUID, spellID)
     if event == "PLAYER_ENTERING_WORLD" then
+        if EmiNotSoRaidToolsDB then
+            local p = EmiNotSoRaidToolsDB.lustPosition or { point = "CENTER", x = 0, y = 200 }
+            normalLustIcon:ClearAllPoints()
+            normalLustIcon:SetPoint(p.point, p.x, p.y)
+
+            local size = EmiNotSoRaidToolsDB.lustSize or 80
+            normalLustIcon:SetSize(size, size)
+        end
+        UpdateLustFromAuras()
         Emi_UpdateLustLockState()
+        return
+    end
+
+    if event == "UNIT_AURA" and unit == "player" then
+        UpdateLustFromAuras()
+        return
     end
 
     if event == "UNIT_SPELLCAST_SUCCEEDED" and spellID then
         if unit ~= "player" then return end
 
-        if EmiNotSoRaidToolsDB and EmiNotSoRaidToolsDB.LustIconEnabled then
-            if LUST_SPELLS[spellID] then
-                lustActive = true
-                lustEndTime = GetTime() + LUST_SPELLS[spellID]
-
-                -- PEDRO
-                if EmiNotSoRaidToolsDB.LustPedroEnabled then
-                    ResetPedroAnimation()
-                    pedroLustGifFrame:Show()
-                end
-
-                -- NORMAL ICON
-                if EmiNotSoRaidToolsDB.LustIconEnabled then
-                    normalLustIcon:Show()
-                end
+        if EmiNotSoRaidToolsDB and LUST_SPELLS[spellID] then
+            if EmiNotSoRaidToolsDB.lustIconEnabled or EmiNotSoRaidToolsDB.lustPedroEnabled then
+                SetLustState(true, GetTime() + LUST_SPELLS[spellID])
             end
         end
     end
@@ -135,7 +249,7 @@ end)
 
 normalLustIcon:SetScript("OnUpdate", function(self, elapsed)
     local db = EmiNotSoRaidToolsDB
-    if not db or not db.LustIconEnabled then
+    if not db or not db.lustIconEnabled then
         self:Hide()
         return
     end
@@ -145,7 +259,7 @@ normalLustIcon:SetScript("OnUpdate", function(self, elapsed)
         if remaining > 0 then
             lustIconText:SetFormattedText("%.1f", remaining)
         else
-            lustActive = false
+            SetLustState(false, 0)
             if db.locked then self:Hide() end
         end
     elseif not db.locked then
